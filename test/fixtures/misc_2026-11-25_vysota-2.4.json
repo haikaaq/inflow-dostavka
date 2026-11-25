@@ -1,0 +1,428 @@
+{
+ "captured": "2026-11-25",
+ "source": "https://calc.pecom.ru/bitrix/components/pecom/calc/ajax.php",
+ "note": "страховка 500 000 ₽ для одноместной и две двухместные до Санкт-Петербурга",
+ "requests": {
+  "places[0][]=1.2&places[0][]=0.35&places[0][]=2.4&places[0][]=1.008&places[0][]=205&places[0][]=0&places[0][]=0&places[1][]=1&places[1][]=0.28&places[1][]=2.3&places[1][]=0.644&places[1][]=131&places[1][]=0&places[1][]=0&places[2][]=1&places[2][]=0.15&places[2][]=2.1&places[2][]=0.315&places[2][]=64&places[2][]=0&places[2][]=0&places[3][]=1&places[3][]=0.4&places[3][]=0.25&places[3][]=0.1&places[3][]=20&places[3][]=0&places[3][]=0&take[town]=67201&deliver[town]=-463&strah=500000": {
+   "response": {
+    "region_to": {
+     "UID": "64adbe2c-a185-11dc-a911-000a5e19ccb4",
+     "Code": "СП",
+     "BranchName": "Санкт-Петербург",
+     "IsActive": true,
+     "CountryPresenceUID": "982d33e2-bee6-453a-992e-11d13fa66fa7",
+     "IsPopular": false,
+     "mainTownGUID": "de13ce1d-fcc5-4cd8-8543-a1ae3f1f5084"
+    },
+    "ldeliver": false,
+    "is_ldeliverdate": false,
+    "ldeliverdate": "",
+    "ldeliverdays": [],
+    "ltake": false,
+    "is_ltakedate": false,
+    "ltakedate": "",
+    "ltakedays": [],
+    "calendar": {
+     "auto": {
+      "take": {
+       "dates": ""
+      }
+     }
+    },
+    "department_from_uid": "4749f8b8-2a2a-11e9-80ce-00155d713b38",
+    "region_from": {
+     "UID": "b473ce9f-dd68-44ea-a4b2-4cb63b6e970d",
+     "Code": "МВ",
+     "BranchName": "Москва Восток",
+     "IsActive": true,
+     "CountryPresenceUID": "982d33e2-bee6-453a-992e-11d13fa66fa7",
+     "IsPopular": false,
+     "mainTownGUID": "8d94504d-2dca-481e-a4cf-39d353be465a"
+    },
+    "take": [
+     "Стоимость забора груза",
+     "Сходня (Химки)",
+     31900
+    ],
+    "department_to_uid": "c007f9bb-5a96-11e4-94e4-00155d9d920f",
+    "deliver": [
+     "Стоимость доставки груза",
+     "Санкт-Петербург",
+     27100
+    ],
+    "tenge_only": false,
+    "date_calendar": [
+     "2026-11-25T00:00:00",
+     "2026-11-26T00:00:00",
+     "2026-11-27T00:00:00",
+     "2026-11-28T00:00:00",
+     "2026-11-29T00:00:00",
+     "2026-11-30T00:00:00",
+     "2026-12-01T00:00:00",
+     "2026-12-02T00:00:00",
+     "2026-12-03T00:00:00",
+     "2026-12-04T00:00:00",
+     "2026-12-05T00:00:00",
+     "2026-12-06T00:00:00",
+     "2026-12-07T00:00:00"
+    ],
+    "auto": [
+     "Стоимость перевозки груза",
+     "Москва Восток - Санкт-Петербург",
+     10417.68
+    ],
+    "error": [
+     "Авиаперевозка по данному маршруту не осуществляется"
+    ],
+    "error_avia": [
+     "Авиаперевозка по данному маршруту не осуществляется"
+    ],
+    "ADD_3": {
+     "1": "Страхование",
+     "2": "",
+     "3": 710
+    },
+    "periods_days": "2 - 5",
+    "periods_days_list": {
+     "mainToMain": "2 - 5",
+     "dopToDop": "2 - 5",
+     "dopToMain": "2 - 5",
+     "mainToDop": "2 - 5"
+    },
+    "periods": "<br/><p><b>Количество суток в пути</b>: <span class='periods js-periods-hint'><span class='periods__days'>2 - 5</span><span class='periods__star'>*</span></span><br/><b>Дни отправки</b>: пн, вт, ср, чт, пт, сб, вс</p><br/>",
+    "dop_departments_from_with_cost": [],
+    "dop_departments_to_with_cost": [],
+    "text": "",
+    "ICARD_TYPES": [
+     {
+      "id": 10,
+      "name": "Паспорт гражданина РФ",
+      "mask": {
+       "seriesLength": 4,
+       "numberLength": 6,
+       "seriesType": "tel",
+       "numberType": "tel",
+       "seriesRegular": "0-9",
+       "numberRegular": "0-9"
+      }
+     },
+     {
+      "id": 3,
+      "name": "Водительское удостоверение",
+      "mask": {
+       "seriesLength": 4,
+       "numberLength": 6,
+       "seriesType": "text",
+       "numberType": "tel",
+       "seriesRegular": "0-9а-яА-ЯёЁ",
+       "numberRegular": "0-9"
+      }
+     },
+     {
+      "id": 5,
+      "name": "Заграничный паспорт",
+      "mask": {
+       "seriesLength": 2,
+       "numberLength": 7,
+       "seriesType": "tel",
+       "numberType": "tel",
+       "seriesRegular": "0-9",
+       "numberRegular": "0-9"
+      }
+     },
+     {
+      "id": 12,
+      "name": "Военный билет",
+      "mask": {
+       "seriesLength": 2,
+       "numberLength": 7,
+       "seriesType": "text",
+       "numberType": "tel",
+       "seriesRegular": "а-яА-ЯёЁ",
+       "numberRegular": "0-9"
+      }
+     },
+     {
+      "id": 9,
+      "name": "Паспорт моряка",
+      "mask": {
+       "seriesLength": 2,
+       "numberLength": 7,
+       "seriesType": "text",
+       "numberType": "tel",
+       "seriesRegular": "a-zA-Z",
+       "numberRegular": "0-9"
+      }
+     },
+     {
+      "id": 4,
+      "name": "Вид на жительство",
+      "mask": {
+       "numberType": "text",
+       "numberRegular": "а-яА-ЯёЁa-zA-Z0-9"
+      }
+     },
+     {
+      "id": 1,
+      "name": "Паспорт иностранного гражданина",
+      "mask": {
+       "numberType": "text",
+       "numberRegular": "а-яА-ЯёЁa-zA-Z0-9"
+      }
+     },
+     {
+      "id": 7,
+      "name": "Временное удостоверение личности гражданина РФ",
+      "mask": {
+       "numberType": "text",
+       "numberRegular": "а-яА-ЯёЁa-zA-Z0-9"
+      }
+     },
+     {
+      "id": 6,
+      "name": "Удостоверение беженца",
+      "mask": {
+       "numberType": "text",
+       "numberRegular": "а-яА-ЯёЁa-zA-Z0-9"
+      }
+     },
+     {
+      "id": 2,
+      "name": "Разрешение на временное проживание",
+      "mask": {
+       "numberType": "text",
+       "numberRegular": "а-яА-ЯёЁa-zA-Z0-9"
+      }
+     },
+     {
+      "id": 11,
+      "name": "Свидетельство о рассмотрении ходатайства о признании беженцем",
+      "mask": {
+       "numberType": "text",
+       "numberRegular": "а-яА-ЯёЁa-zA-Z0-9"
+      }
+     },
+     {
+      "id": 8,
+      "name": "Свидетельство о предоставлении временного убежища на территории РФ",
+      "mask": {
+       "numberLength": 7,
+       "seriesType": "text",
+       "numberType": "tel",
+       "seriesRegular": "a-zA-Zа-яА-ЯёЁ",
+       "numberRegular": "0-9"
+      }
+     }
+    ]
+   }
+  },
+  "places[0][]=1.2&places[0][]=0.35&places[0][]=2.4&places[0][]=1.008&places[0][]=124&places[0][]=0&places[0][]=0&places[1][]=1&places[1][]=0.3&places[1][]=2.1&places[1][]=0.63&places[1][]=107&places[1][]=0&places[1][]=0&places[2][]=1.2&places[2][]=0.4&places[2][]=2.1&places[2][]=1.008&places[2][]=123&places[2][]=0&places[2][]=0&places[3][]=1&places[3][]=0.15&places[3][]=2.1&places[3][]=0.315&places[3][]=123&places[3][]=0&places[3][]=0&places[4][]=0.25&places[4][]=0.7&places[4][]=2.1&places[4][]=0.368&places[4][]=82&places[4][]=0&places[4][]=0&places[5][]=0.8&places[5][]=0.6&places[5][]=1&places[5][]=0.48&places[5][]=41&places[5][]=0&places[5][]=0&places[6][]=1.2&places[6][]=0.35&places[6][]=2.4&places[6][]=1.008&places[6][]=124&places[6][]=0&places[6][]=0&places[7][]=1&places[7][]=0.3&places[7][]=2.1&places[7][]=0.63&places[7][]=107&places[7][]=0&places[7][]=0&places[8][]=1.2&places[8][]=0.4&places[8][]=2.1&places[8][]=1.008&places[8][]=123&places[8][]=0&places[8][]=0&places[9][]=1&places[9][]=0.15&places[9][]=2.1&places[9][]=0.315&places[9][]=123&places[9][]=0&places[9][]=0&places[10][]=0.25&places[10][]=0.7&places[10][]=2.1&places[10][]=0.368&places[10][]=82&places[10][]=0&places[10][]=0&places[11][]=0.8&places[11][]=0.6&places[11][]=1&places[11][]=0.48&places[11][]=41&places[11][]=0&places[11][]=0&take[town]=67201&deliver[town]=-463": {
+   "response": {
+    "region_to": {
+     "UID": "64adbe2c-a185-11dc-a911-000a5e19ccb4",
+     "Code": "СП",
+     "BranchName": "Санкт-Петербург",
+     "IsActive": true,
+     "CountryPresenceUID": "982d33e2-bee6-453a-992e-11d13fa66fa7",
+     "IsPopular": false,
+     "mainTownGUID": "de13ce1d-fcc5-4cd8-8543-a1ae3f1f5084"
+    },
+    "ldeliver": false,
+    "is_ldeliverdate": false,
+    "ldeliverdate": "",
+    "ldeliverdays": [],
+    "ltake": false,
+    "is_ltakedate": false,
+    "ltakedate": "",
+    "ltakedays": [],
+    "calendar": {
+     "auto": {
+      "take": {
+       "dates": ""
+      }
+     }
+    },
+    "department_from_uid": "4749f8b8-2a2a-11e9-80ce-00155d713b38",
+    "region_from": {
+     "UID": "b473ce9f-dd68-44ea-a4b2-4cb63b6e970d",
+     "Code": "МВ",
+     "BranchName": "Москва Восток",
+     "IsActive": true,
+     "CountryPresenceUID": "982d33e2-bee6-453a-992e-11d13fa66fa7",
+     "IsPopular": false,
+     "mainTownGUID": "8d94504d-2dca-481e-a4cf-39d353be465a"
+    },
+    "take": [
+     "Стоимость забора груза",
+     "Сходня (Химки)",
+     31900
+    ],
+    "department_to_uid": "c007f9bb-5a96-11e4-94e4-00155d9d920f",
+    "deliver": [
+     "Стоимость доставки груза",
+     "Санкт-Петербург",
+     27100
+    ],
+    "tenge_only": false,
+    "date_calendar": [
+     "2026-11-25T00:00:00",
+     "2026-11-26T00:00:00",
+     "2026-11-27T00:00:00",
+     "2026-11-28T00:00:00",
+     "2026-11-29T00:00:00",
+     "2026-11-30T00:00:00",
+     "2026-12-01T00:00:00",
+     "2026-12-02T00:00:00",
+     "2026-12-03T00:00:00",
+     "2026-12-04T00:00:00",
+     "2026-12-05T00:00:00",
+     "2026-12-06T00:00:00",
+     "2026-12-07T00:00:00"
+    ],
+    "auto": [
+     "Стоимость перевозки груза",
+     "Москва Восток - Санкт-Петербург",
+     36409.26
+    ],
+    "error": [
+     "Авиаперевозка по данному маршруту не осуществляется"
+    ],
+    "error_avia": [
+     "Авиаперевозка по данному маршруту не осуществляется"
+    ],
+    "periods_days": "2 - 5",
+    "periods_days_list": {
+     "mainToMain": "2 - 5",
+     "dopToDop": "2 - 5",
+     "dopToMain": "2 - 5",
+     "mainToDop": "2 - 5"
+    },
+    "periods": "<br/><p><b>Количество суток в пути</b>: <span class='periods js-periods-hint'><span class='periods__days'>2 - 5</span><span class='periods__star'>*</span></span><br/><b>Дни отправки</b>: пн, вт, ср, чт, пт, сб, вс</p><br/>",
+    "dop_departments_from_with_cost": [],
+    "dop_departments_to_with_cost": [],
+    "text": "",
+    "ICARD_TYPES": [
+     {
+      "id": 10,
+      "name": "Паспорт гражданина РФ",
+      "mask": {
+       "seriesLength": 4,
+       "numberLength": 6,
+       "seriesType": "tel",
+       "numberType": "tel",
+       "seriesRegular": "0-9",
+       "numberRegular": "0-9"
+      }
+     },
+     {
+      "id": 3,
+      "name": "Водительское удостоверение",
+      "mask": {
+       "seriesLength": 4,
+       "numberLength": 6,
+       "seriesType": "text",
+       "numberType": "tel",
+       "seriesRegular": "0-9а-яА-ЯёЁ",
+       "numberRegular": "0-9"
+      }
+     },
+     {
+      "id": 5,
+      "name": "Заграничный паспорт",
+      "mask": {
+       "seriesLength": 2,
+       "numberLength": 7,
+       "seriesType": "tel",
+       "numberType": "tel",
+       "seriesRegular": "0-9",
+       "numberRegular": "0-9"
+      }
+     },
+     {
+      "id": 12,
+      "name": "Военный билет",
+      "mask": {
+       "seriesLength": 2,
+       "numberLength": 7,
+       "seriesType": "text",
+       "numberType": "tel",
+       "seriesRegular": "а-яА-ЯёЁ",
+       "numberRegular": "0-9"
+      }
+     },
+     {
+      "id": 9,
+      "name": "Паспорт моряка",
+      "mask": {
+       "seriesLength": 2,
+       "numberLength": 7,
+       "seriesType": "text",
+       "numberType": "tel",
+       "seriesRegular": "a-zA-Z",
+       "numberRegular": "0-9"
+      }
+     },
+     {
+      "id": 4,
+      "name": "Вид на жительство",
+      "mask": {
+       "numberType": "text",
+       "numberRegular": "а-яА-ЯёЁa-zA-Z0-9"
+      }
+     },
+     {
+      "id": 1,
+      "name": "Паспорт иностранного гражданина",
+      "mask": {
+       "numberType": "text",
+       "numberRegular": "а-яА-ЯёЁa-zA-Z0-9"
+      }
+     },
+     {
+      "id": 7,
+      "name": "Временное удостоверение личности гражданина РФ",
+      "mask": {
+       "numberType": "text",
+       "numberRegular": "а-яА-ЯёЁa-zA-Z0-9"
+      }
+     },
+     {
+      "id": 6,
+      "name": "Удостоверение беженца",
+      "mask": {
+       "numberType": "text",
+       "numberRegular": "а-яА-ЯёЁa-zA-Z0-9"
+      }
+     },
+     {
+      "id": 2,
+      "name": "Разрешение на временное проживание",
+      "mask": {
+       "numberType": "text",
+       "numberRegular": "а-яА-ЯёЁa-zA-Z0-9"
+      }
+     },
+     {
+      "id": 11,
+      "name": "Свидетельство о рассмотрении ходатайства о признании беженцем",
+      "mask": {
+       "numberType": "text",
+       "numberRegular": "а-яА-ЯёЁa-zA-Z0-9"
+      }
+     },
+     {
+      "id": 8,
+      "name": "Свидетельство о предоставлении временного убежища на территории РФ",
+      "mask": {
+       "numberLength": 7,
+       "seriesType": "text",
+       "numberType": "tel",
+       "seriesRegular": "a-zA-Zа-яА-ЯёЁ",
+       "numberRegular": "0-9"
+      }
+     }
+    ]
+   }
+  }
+ }
+}

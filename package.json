@@ -1,0 +1,12 @@
+{
+  "name": "kabiny-kalkulyator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Калькулятор доставки акустических кабин через публичный API ПЭК",
+  "scripts": {
+    "test": "node test/calc.test.js"
+  },
+  "devDependencies": {
+    "jsdom": "^24.0.0"
+  }
+}

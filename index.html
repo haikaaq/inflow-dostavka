@@ -74,6 +74,9 @@
   #matrixTable td { font-size:13px; padding:7px 4px; font-variant-numeric:tabular-nums; }
   #matrixTable td:nth-child(5) { color:var(--blue); font-weight:700; }
   #matrixTable tbody tr:nth-child(even) td { background:var(--mist); }
+  .coefs { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .coefs button { padding:5px 11px; font-size:14px; }
+  .coefs button.on { background:var(--blue); color:#fff; }
   .card.stale > * { opacity:.45; }
   .card.stale::before { content:'Данные изменились — нажмите «Рассчитать» ещё раз'; display:block; color:var(--warn); font-size:14px; font-weight:600; margin-bottom:8px; }
   @media (max-width:420px) { .two { grid-template-columns:1fr; } .top img { width:130px; } .big { font-size:26px; } }
@@ -89,7 +92,13 @@
   <section class="card">
     <h2><span class="step">1</span>Что везём</h2>
     <label for="model">Модель</label>
-    <select id="model"></select>
+    <select id="model">
+      <option value="one">Одноместная (4 короба)</option>
+      <option value="oneh">Полутораместная (5 коробов)</option>
+      <option value="two" selected>Двухместная (6 коробов)</option>
+      <option value="four">Четырёхместная (6 коробов)</option>
+      <option value="six">Шестиместная (9 коробов)</option>
+    </select>
     <label for="qty">Сколько кабин</label>
     <input id="qty" type="number" min="1" step="1" value="1" inputmode="numeric">
     <p class="note" id="boxSummary"></p>
@@ -97,6 +106,7 @@
       <summary>Короба и вес — посмотреть или поправить</summary>
       <label for="totalKg">Вес одной кабины, кг</label>
       <input id="totalKg" type="number" min="1" inputmode="numeric">
+      <p class="note">Порядок сторон не важен: калькулятор кладёт короб плашмя, самая длинная сторона идёт как длина.</p>
       <div class="scroll"><table id="boxes"><thead><tr><th>№</th><th>Толщ.</th><th>Шир.</th><th>Выс.</th><th>Вес</th><th></th></tr></thead><tbody></tbody></table></div>
       <div class="actions"><button class="ghost small" id="addBox" type="button">+ короб</button><button class="ghost small" id="resetBoxes" type="button">Вернуть замеры</button></div>
     </details>
@@ -113,14 +123,17 @@
     <p class="note" id="toState"></p>
     <label for="from">Откуда отправляем</label>
     <select id="from">
-      <option value="67201">Сходня (Химки) — производство</option>
+      <option value="67201" selected>Сходня (производство)</option>
       <option value="2127560">Химки</option>
       <option value="-446">Москва</option>
     </select>
+    <p class="note">У ПЭК это один филиал «Москва Восток»: перевозка одинаковая, отличается только цена забора машиной ПЭК.</p>
     <div class="chk"><input id="take" type="checkbox"><span>Забор груза машиной ПЭК</span></div>
     <div class="two">
-      <div><label for="own">Свой довоз до терминала, ₽</label><input id="own" type="number" min="0" value="3000" inputmode="numeric"></div>
-      <div><label for="coef">Коэффициент для клиента</label><input id="coef" type="number" min="1" step="0.05" value="1.2" inputmode="decimal"></div>
+      <div><label for="own">Свой довоз рохлей до терминала, ₽ за кабину</label><input id="own" type="number" min="0" value="3000" inputmode="numeric"></div>
+      <div><label for="coef">Коэффициент для клиента</label><input id="coef" type="number" min="1" step="0.05" value="1.2" inputmode="decimal">
+        <div class="coefs"><button type="button" class="ghost small" data-coef="1">1,0</button><button type="button" class="ghost small" data-coef="1.1">1,1</button><button type="button" class="ghost small" data-coef="1.2">1,2</button><button type="button" class="ghost small" data-coef="1.25">1,25</button><button type="button" class="ghost small" data-coef="1.3">1,3</button></div>
+      </div>
     </div>
     <details>
       <summary>Страховка и прочие расходы</summary>
@@ -153,7 +166,8 @@
   <details class="card">
     <summary>Как считает калькулятор</summary>
     <p class="note">Итоговая сумма = перевозка + (забор, если включён) + доставка (до адреса) + страховка.<br>
-    Клиенту = (итого ПЭК + свой довоз + прочие расходы) × коэффициент, округление вверх до 100 ₽.<br>
+    Клиенту = (итого ПЭК + свой довоз рохлей за каждую кабину + прочие расходы) × коэффициент, округление вверх до 100 ₽.<br>
+    Короба передаются в ПЭК плашмя: самая длинная сторона — длина, самая короткая — высота.<br>
     Не входит: подъём на этаж, ожидание машины, хранение на терминале, упаковка ПЭК, скидки по договору с ПЭК.<br>
     Адрес можно вводить целиком, как на pecom.ru: калькулятор находит в нём населённый пункт. ПЭК и на своём сайте считает доставку по населённому пункту — улица и дом цену не меняют.</p>
   </details>
@@ -194,7 +208,7 @@ function renderBoxes() {
   tb.innerHTML = '';
   boxes.forEach((b, i) => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${i + 1}</td>` + [0, 1, 2, 3].map(j => `<td><input type="number" min="0" inputmode="numeric" data-i="${i}" data-j="${j}" value="${b[j] ?? ''}"></td>`).join('') +
+    tr.innerHTML = `<td>${i + 1}</td>` + [0, 1, 2, 3].map(j => `<td><input type="number" min="0" inputmode="numeric" data-i="${i}" data-j="${j}" value="${b[j] == null ? '' : b[j]}"></td>`).join('') +
       `<td><button class="ghost small" type="button" data-del="${i}" aria-label="Удалить короб">×</button></td>`;
     tb.appendChild(tr);
   });
@@ -228,8 +242,12 @@ function placesForOneCabin() {
   // округляем так чтобы сумма по коробам точно равнялась общему весу
   const ints = kg.map(Math.floor), target = Math.round(kg.reduce((s, x) => s + x, 0));
   kg.map((x, i) => [x - ints[i], i]).sort((a, b) => b[0] - a[0]).slice(0, Math.max(0, target - ints.reduce((s, x) => s + x, 0))).forEach(([, i]) => ints[i]++);
-  return boxes.map((b, i) => [(b[1] || 0) / 1000, (b[0] || 0) / 1000, (b[2] || 0) / 1000, Math.ceil(vols[i] * 1000) / 1000, Math.max(1, ints[i]), 0, 0]);
+  // короба везём плашмя поэтому длина это самая большая сторона ширина средняя а высота самая маленькая
+  // если передать 2.4 м как высоту ПЭК считает забор и доставку по тарифу большой машины 27100 вместо 3050 по Петербургу
+  return boxes.map((b, i) => { const d = sides(b); return [d[1] / 1000, d[0] / 1000, d[2] / 1000, Math.ceil(vols[i] * 1000) / 1000, Math.max(1, ints[i]), 0, 0]; });
 }
+// стороны короба по убыванию в мм
+function sides(b) { return [b[0] || 0, b[1] || 0, b[2] || 0].sort((x, y) => y - x); }
 // проверяем груз до запроса чтобы не получить от ПЭК непонятную ошибку
 function cargoProblem() {
   if (!boxes.length) return 'Нет ни одного короба. Откройте «Короба и вес» и нажмите «Вернуть замеры» или «+ короб».';
@@ -243,10 +261,11 @@ function qty() { return Math.max(1, Math.floor(Number($('qty').value) || 1)); }
 function summarize() {
   const p = placesForOneCabin(), q = qty();
   const vol = p.reduce((s, x) => s + x[3], 0), kg = p.reduce((s, x) => s + x[4], 0);
-  const maxDim = Math.max(0, ...boxes.map(b => Math.max(b[0] || 0, b[1] || 0, b[2] || 0)));
+  // пределы ПЭК для одного места длина до 13.4 м ширина до 2.42 м высота до 2.45 м
+  const big = boxes.findIndex(b => { const d = sides(b); return d[0] > 13400 || d[1] > 2420 || d[2] > 2450; });
   $('boxSummary').textContent = `Одна кабина: ${p.length} ${plural(p.length, 'короб', 'короба', 'коробов')}, ${vol.toFixed(2)} м³, ${kg} кг. ` +
     (q > 1 ? `Всего: ${p.length * q} ${plural(p.length * q, 'место', 'места', 'мест')}, ${(vol * q).toFixed(2)} м³.` : '');
-  $('longWarn').textContent = maxDim > 2500 ? 'Есть короб длиннее 2,5 м — публичный калькулятор ПЭК такое не считает, уточняйте у менеджера ПЭК.'
+  $('longWarn').textContent = big >= 0 ? `Короб №${big + 1} больше, чем берёт ПЭК (длина до 13,4 м, ширина до 2,42 м, высота до 2,45 м). Уточняйте у менеджера ПЭК.`
     : '';
   markStale();
 }
@@ -378,13 +397,16 @@ async function pek(fromId, toId) {
 }
 function totals(j) {
   const takeOn = $('take').checked;
-  const take = takeOn ? (j.take?.[2] || 0) : 0;
-  const auto = j.autonegabarit?.[2] ?? j.auto?.[2] ?? null;
-  const deliver = j.deliver?.[2] ?? null;
+  // третий элемент массива ответа ПЭК это сумма а если массива нет то суммы тоже нет
+  const sum = a => (a && a[2] != null) ? a[2] : null;
+  const take = takeOn ? (sum(j.take) || 0) : 0;
+  const auto = sum(j.autonegabarit) != null ? sum(j.autonegabarit) : sum(j.auto);
+  const deliver = sum(j.deliver);
   // доп услуги приходят то массивом то объектом с ключами 1 2 3 и страховка приходит именно объектом
-  const addVal = v => Array.isArray(v) ? Number(v[2]) || 0 : (v && typeof v === 'object') ? Number(v[3] ?? v[2]) || 0 : 0;
+  const addVal = v => Array.isArray(v) ? Number(v[2]) || 0 : (v && typeof v === 'object') ? Number(v[3] != null ? v[3] : v[2]) || 0 : 0;
   const add = Object.keys(j).filter(k => /^ADD(_\d+)?$/.test(k)).reduce((s, k) => s + addVal(j[k]), 0);
-  const own = takeOn ? 0 : (Number($('own').value) || 0);
+  // свой довоз рохлей считаем за каждую кабину
+  const own = takeOn ? 0 : (Number($('own').value) || 0) * qty();
   const extra = Number($('extra').value) || 0;
   const coef = Number($('coef').value) || 1;
   const toClient = x => x == null ? null : Math.ceil(x * coef / 100) * 100;
@@ -393,7 +415,7 @@ function totals(j) {
   return { take, auto, deliver, add, own, extra, coef, pekTerminal, pekDoor,
     clientTerminal: toClient(pekTerminal == null ? null : pekTerminal + own + extra),
     clientDoor: toClient(pekDoor == null ? null : pekDoor + own + extra),
-    days: j.periods_days || null, toName: j.deliver?.[1] || null,
+    days: j.periods_days || null, toName: (j.deliver && j.deliver[1]) || null,
     errors: [...new Set([...(j.error || []), ...(j.error_auto || [])])].filter(e => !/Авиа/i.test(e)) };
 }
 function showError(msg) { $('resultCard').classList.remove('stale'); $('resultCard').hidden = false; $('resBody').hidden = true; $('resErr').textContent = msg; $('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
@@ -425,12 +447,14 @@ async function calcOne() {
       ['Адрес', esc($('to').value.trim())],
       ['Груз', `${q} ${plural(q, 'кабина', 'кабины', 'кабин')}, ${places} ${plural(places, 'место', 'места', 'мест')}`],
       ['Срок в пути', t.days ? t.days + ' дн.' : '—', 'n'],
-      ['Забор с производства', $('take').checked ? fmt(t.take) + ' (машина ПЭК)' : `${fmt(t.own)} (свой довоз)`],
+      ['Забор с производства', $('take').checked ? fmt(t.take) + ' (машина ПЭК)' : `${fmt(t.own)} (свой довоз рохлей${q > 1 ? ', ' + q + ' × ' + fmt(t.own / q) : ''})`],
       ['Перевозка терминал–терминал', fmt(t.auto), 'n'],
       ['Доставка до адреса', fmt(t.deliver), 'n'],
       ['Страховка, доп. услуги ПЭК', fmt(t.add), 'n'],
       ['Прочие расходы', fmt(t.extra), 'n'],
       ['Итого ПЭК до адреса / до терминала', `${fmt(t.pekDoor)} / ${fmt(t.pekTerminal)}`],
+      // сайт pecom.ru сам добавляет страхование груза даже при объявленной стоимости 100 ₽ проверено 25.11.2026
+      ['Сайт pecom.ru добавит сам', t.add > 0 ? 'страховка уже учтена выше' : 'страхование груза: 78 ₽ при объявленной стоимости 100 ₽, больше при стоимости кабины. Впишите стоимость в «Страховка»'],
     ];
     $('result').querySelector('tbody').innerHTML = rows.map(r => `<tr><td>${r[0]}</td><td class="${r[2] || ''}">${r[1]}</td></tr>`).join('');
     $('resErr').textContent = t.errors.join(' ');
@@ -468,9 +492,18 @@ async function copy(text) {
   catch (e) { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); let ok = false; try { ok = document.execCommand('copy'); } catch (_) {} ta.remove(); return ok; }
 }
 
+// коэффициент запоминаем в браузере а если хранилище закрыто например в приватном окне работаем без него
+function saveCoef() { try { localStorage.setItem('coef', $('coef').value); } catch (e) {} }
+function loadCoef() { try { return localStorage.getItem('coef'); } catch (e) { return null; } }
+function markCoef() { const v = Number($('coef').value); document.querySelectorAll('[data-coef]').forEach(b => b.classList.toggle('on', Number(b.dataset.coef) === v)); }
+
 // запуск
-for (const [k, m] of Object.entries(MODELS)) $('model').add(new Option(m.name, k));
-$('model').value = 'two';
+// список моделей записан прямо в HTML поэтому он виден даже если скрипт не запустился
+const savedCoef = loadCoef();
+if (Number(savedCoef) > 0) $('coef').value = savedCoef;
+markCoef();
+$('coef').addEventListener('input', () => { saveCoef(); markCoef(); });
+document.querySelectorAll('[data-coef]').forEach(b => b.addEventListener('click', () => { $('coef').value = b.dataset.coef; saveCoef(); markCoef(); markStale(); }));
 loadModel(); toState();
 $('model').addEventListener('change', loadModel);
 $('qty').addEventListener('input', summarize);
@@ -495,7 +528,7 @@ document.querySelectorAll('main > section:not(#resultCard):not(#matrixCard)').fo
 $('calc').addEventListener('click', calcOne);
 $('matrix').addEventListener('click', calcMatrix);
 $('copyMatrix').addEventListener('click', async () => {
-  const ok = await copy(lastMatrix.map(r => r.map(v => typeof v === 'number' ? Math.round(v) : (v ?? '')).join('\t')).join('\n'));
+  const ok = await copy(lastMatrix.map(r => r.map(v => typeof v === 'number' ? Math.round(v) : (v == null ? '' : v)).join('\t')).join('\n'));
   $('copyMatrix').textContent = ok ? 'Скопировано' : 'Не получилось скопировать';
   setTimeout(() => { $('copyMatrix').textContent = 'Скопировать таблицу для Excel'; }, 2000);
 });
