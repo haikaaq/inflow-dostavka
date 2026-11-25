@@ -147,6 +147,15 @@ test('переключатель: по умолчанию свой довоз, �
   assert.equal($('fromBox').hidden, true);
 });
 
+test('раздел 3 Отправка с точным адресом производства', () => {
+  const { w } = page();
+  const heads = [...w.document.querySelectorAll('main > section h2')].map(h => h.textContent.trim());
+  assert.deepEqual(heads.slice(0, 3), ['1Что везём', '2Куда', '3Отправка']);
+  const sec3 = w.document.querySelectorAll('main > section')[2];
+  assert.ok(sec3.contains(w.document.getElementById('take')) && sec3.contains(w.document.getElementById('calc')));
+  assert.match(w.document.getElementById('prodAddr').textContent, /г\. Химки, мкрн Сходня, ул\. Ленинградская, д\. 4/);
+});
+
 test('количество кабин: кнопки плюс и минус, не меньше 1', () => {
   const { w } = page();
   const $ = id => w.document.getElementById(id);

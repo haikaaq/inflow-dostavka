@@ -148,6 +148,12 @@
       <div id="sugg" hidden></div>
     </div>
     <p class="note" id="toState"></p>
+  </section>
+
+  <section class="card">
+    <h2><span class="step">3</span>Отправка</h2>
+    <label>Откуда везём</label>
+    <p class="fixed" id="prodAddr"><b>Производство:</b> Московская обл., г. Химки, мкрн Сходня, ул. Ленинградская, д. 4</p>
     <label>Как груз попадает в ПЭК</label>
     <div class="seg" role="radiogroup">
       <label><input type="radio" name="pickup" id="pickOwn" value="own" checked><span>Свой довоз до терминала</span></label>
@@ -156,7 +162,7 @@
     <div class="two">
       <div id="ownBox"><label for="own">Свой довоз рохлей, ₽ за кабину</label><input id="own" type="number" min="0" value="3000" inputmode="numeric"></div>
       <div id="fromBox" hidden><label>Откуда забрать</label>
-        <p class="fixed">Сходня, производство</p>
+        <p class="fixed">Машина ПЭК заберёт груз с производства</p>
         <input id="from" type="hidden" value="67201">
       </div>
       <div><label for="coef">Коэффициент для клиента</label><input id="coef" type="number" min="1" step="0.05" value="1.2" inputmode="decimal">
@@ -514,7 +520,7 @@ async function calcOne() {
       pl.map((p, i) => `<tr><td>${i + 1}</td><td>${String(p[1]).replace('.', ',')} × ${String(p[0]).replace('.', ',')} × ${String(p[2]).replace('.', ',')}</td><td>${p[4]}</td></tr>`).join('') +
       `</tbody></table>
       <ol class="note" start="3">
-        <li>Откуда: <b>${esc(fromTxt)}</b> — ${takeOn ? '«Забрать по адресу»' : '«Сдать груз в отделении»'}.</li>
+        <li>Откуда: <b>Московская обл., г. Химки, мкрн Сходня, ул. Ленинградская, д. 4</b> — ${takeOn ? '«Забрать по адресу»' : '«Сдать груз в отделении»'}.</li>
         <li>Куда: <b>${esc(t.toName || chosen.name)}</b> — «Доставить по адресу» (для суммы до адреса).</li>
         <li>Объявленная стоимость: <b>${strah ? strah.toLocaleString('ru-RU') : '100'} ₽</b>.</li>
         <li>Сравните строки: «Автоперевозка», ${takeOn ? '«Забор груза», ' : ''}«Доставка груза». Страхование сайт считает по своим правилам и добавляет всегда, даже при 100 ₽ (для одноместной около 420–580 ₽), поэтому «Ориентировочная сумма» на сайте больше на эту страховку.</li>
