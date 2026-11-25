@@ -12,6 +12,10 @@ const ALL = { requests: {} };
 for (const f of fs.readdirSync(path.join(__dirname, 'fixtures'))) Object.assign(ALL.requests, readFixture(f).requests);
 const byLabel = (file, label) => Object.values(readFixture(file).requests).find(r => r.label === label).response;
 const clientRound = x => Math.ceil(x / 100) * 100;
+// поправка сайта pecom.ru к автоперевозке по умолчанию 10 процентов
+const SITE = 1;
+// первое число в строке до знака рубля с копейками
+const money = s => Number(String(s).split('₽')[0].replace(/[^\d,]/g, '').replace(',', '.'));
 const SNAPSHOT = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'pek_matrix_2026-11-11.json'), 'utf8'));
 const MATRIX_NAME = { one: 'Одноместная', six: 'Шестиместная' };
 
@@ -74,6 +78,92 @@ test('скрипт без синтаксиса который не понима�
   assert.ok(!/\?\?/.test(js), 'есть ??');
 });
 
+// короба и вес из письма Артёма от 9 ноября как он их написал
+const ARTEM = {
+  one: { kg: 420, boxes: ['350х1200х2400', '280х1000х2300', '150х1000х2100', '400х1000х250'] },
+  oneh: { kg: 520, boxes: ['350х1200х2400', '300х1200х1400', '180х1400х2100', '150х1000х2100', '250х500х2100'] },
+  two: { kg: 600, boxes: ['350х1200х2400 150', '300х1000х2100 130', '400х1200х2100 150', '150х1000х2100 150', '700х250х2100 100', '600х800х1000 50'] },
+  four: { kg: 700, boxes: ['350х1500х2400', '300х1200х2100', '400х1500х2100', '300х1300х2100', '300х700х2100', '600х800х1300'] },
+  six: { kg: 950, boxes: ['350х1100х2400', '350х1100х2400', '300х1200х2100', '350х1100х2100', '350х1100х2100', '150х1000х2100', '150х1000х2100', '700х300х2100', '600х800х1800'] },
+};
+
+test('форма коробов: подписи длина ширина высота и данные Артёма', () => {
+  const { w } = page();
+  const heads = [...w.document.querySelectorAll('#boxes th')].map(t => t.textContent.trim());
+  assert.deepEqual(heads, ['№', 'Длина, мм', 'Ширина, мм', 'Высота, мм', 'Вес, кг', '']);
+  assert.ok(!/толщ/i.test(w.document.body.textContent), 'на странице не должно быть слова толщина');
+  for (const [m, a] of Object.entries(ARTEM)) {
+    setValue(w, 'model', m);
+    assert.equal(w.document.getElementById('totalKg').value, String(a.kg), m + ' вес');
+    const rows = [...w.document.querySelectorAll('#boxes tbody tr')].map(tr => [...tr.querySelectorAll('input')].map(i => i.value));
+    assert.equal(rows.length, a.boxes.length, m + ' число коробов');
+    a.boxes.forEach((txt, i) => {
+      const [dims, kg] = txt.split(' ');
+      // в форме стороны стоят от большей к меньшей длина ширина высота
+      const sorted = dims.split('х').map(Number).sort((x, y) => y - x).map(String);
+      assert.deepEqual(rows[i].slice(0, 3), sorted, `${m} короб ${i + 1}`);
+      assert.equal(rows[i][3], kg || '', `${m} короб ${i + 1} вес`);
+    });
+    // в ПЭК уходит то же самое плашмя длина самая большая высота самая маленькая
+    const p = w.placesForOneCabin();
+    a.boxes.forEach((txt, i) => {
+      const s = txt.split(' ')[0].split('х').map(Number).sort((x, y) => y - x);
+      assert.deepEqual(Array.from(p[i].slice(0, 3)), [s[1] / 1000, s[0] / 1000, s[2] / 1000], `${m} место ${i + 1}`);
+    });
+  }
+});
+
+test('короб введён в другом порядке: результат тот же', () => {
+  const { w } = page();
+  setValue(w, 'model', 'one');
+  const before = Array.from(w.placesForOneCabin()[0].slice(0, 3));
+  // вводим высоту 2400 а длину 350 как сделал бы человек по старым подписям
+  const inp = [...w.document.querySelectorAll('#boxes tbody tr')][0].querySelectorAll('input');
+  [['350', 0], ['1200', 1], ['2400', 2]].forEach(([v, j]) => { inp[j].value = v; inp[j].dispatchEvent(new w.Event('input', { bubbles: true })); });
+  assert.deepEqual(Array.from(w.placesForOneCabin()[0].slice(0, 3)), before);
+});
+
+test('пустой размер: сообщение про длину ширину и высоту', async () => {
+  const w = loadPage({ fetchImpl: async () => { throw new Error('не должен звать'); } });
+  const inp = w.document.querySelector('#boxes input');
+  inp.value = ''; inp.dispatchEvent(new w.Event('input', { bubbles: true }));
+  await w.calcOne();
+  assert.match(text(w, 'resErr'), /длину, ширину и высоту/);
+});
+
+test('переключатель: по умолчанию свой довоз, видно только поле выбранного варианта', () => {
+  const { w } = page();
+  const $ = id => w.document.getElementById(id);
+  assert.equal($('pickOwn').checked, true);
+  assert.equal($('take').checked, false);
+  assert.equal($('ownBox').hidden, false);
+  assert.equal($('fromBox').hidden, true);
+  setValue(w, 'take', true);
+  assert.equal($('pickOwn').checked, false);
+  assert.equal($('ownBox').hidden, true);
+  assert.equal($('fromBox').hidden, false);
+  setValue(w, 'pickOwn', true);
+  assert.equal($('ownBox').hidden, false);
+  assert.equal($('fromBox').hidden, true);
+});
+
+test('количество кабин: кнопки плюс и минус, не меньше 1', () => {
+  const { w } = page();
+  const $ = id => w.document.getElementById(id);
+  $('qtyMinus').click();
+  assert.equal($('qty').value, '1');
+  $('qtyPlus').click(); $('qtyPlus').click();
+  assert.equal($('qty').value, '3');
+  assert.match($('boxSummary').textContent, /Всего: 3 кабины, 11,43 м³/);   // двухместная 3.81 м³ на 3 кабины
+  assert.equal($('qtyMinus').classList.contains('off'), false);
+  $('qtyMinus').click();
+  assert.equal($('qty').value, '2');
+  setValue(w, 'qty', 0);
+  $('qtyMinus').click();
+  assert.equal($('qty').value, '1');
+  assert.equal($('qtyMinus').classList.contains('off'), true);
+});
+
 test('пункт отправки по умолчанию Сходня', () => {
   const { w } = page();
   assert.equal(w.document.getElementById('from').value, '67201');
@@ -108,10 +198,11 @@ for (const model of ['one', 'six']) {
     assert.equal(rows.length, 15);
     rows.forEach((r, i) => {
       const j = fx[i];
-      const door = j.auto[2] + j.deliver[2];
+      const auto = Math.round(j.auto[2] * SITE * 100) / 100;
+      const door = auto + j.deliver[2];
       assert.equal(rub(r[3]), Math.round(door), r[0] + ' ПЭК до адреса');
       assert.equal(rub(r[4]), clientRound((door + 3000) * 1.2), r[0] + ' клиенту до адреса');
-      assert.equal(rub(r[5]), clientRound((j.auto[2] + 3000) * 1.2), r[0] + ' клиенту до терминала');
+      assert.equal(rub(r[5]), clientRound((auto + 3000) * 1.2), r[0] + ' клиенту до терминала');
     });
   });
 
@@ -136,21 +227,28 @@ test('расчёт одной кабины: строки результата и
   setValue(w, 'model', 'one');
   await w.calcOne();
   const r = resultRows(w);
-  // одноместная плашмя до Петербурга перевозка 10417.68 доставка 3047.5
-  assert.equal(rub(r['Перевозка терминал–терминал']), 10418);
-  assert.equal(rub(r['Доставка до адреса']), 3048);
-  assert.equal(rub(r['Клиенту до адреса (×1.2)']), clientRound((10417.68 + 3047.5 + 3000) * 1.2));   // 19 800
-  assert.equal(rub(r['Клиенту до терминала ПЭК (×1.2)']), clientRound((10417.68 + 3000) * 1.2));   // 16 200
+  // одноместная плашмя до Петербурга расчёт ПЭК 10417.68 доставка 3047.5
+  assert.equal(money(r['Автоперевозка']), 10417.68);
+  assert.equal(money(r['Доставка груза (до адреса)']), 3047.5);
+  assert.equal(rub(r['Клиенту до адреса (×1.2)']), clientRound((10417.68 + 3047.5 + 3000) * 1.2));
+  assert.equal(rub(r['Клиенту до терминала ПЭК (×1.2)']), clientRound((10417.68 + 3000) * 1.2));
+  assert.equal(w.document.getElementById('siteAdj'), null);
 });
 
-test('строка про доплаты сайта pecom.ru', async () => {
+test('блок что ввести на pecom.ru: места в метрах и вес как в расчёте', async () => {
   const { w } = page();
   setValue(w, 'model', 'one');
   await w.calcOne();
-  assert.match(resultRows(w)['Сайт pecom.ru добавит сам'], /страхование груза/);
-  setValue(w, 'strah', 500000);
-  await w.calcOne();
-  assert.match(resultRows(w)['Сайт pecom.ru добавит сам'], /учтена/);
+  const b = w.document.getElementById('pecCheckBody');
+  const rows = [...b.querySelectorAll('table.places tbody tr')].map(tr => [...tr.children].map(td => td.textContent));
+  // одноместная из письма Артёма вес 420 делится по объёму 205 131 64 20 так вводили на сайте 26.11
+  assert.deepEqual(rows, [['1', '2,4 × 1,2 × 0,35', '205'], ['2', '2,3 × 1 × 0,28', '131'], ['3', '2,1 × 1 × 0,15', '64'], ['4', '1 × 0,4 × 0,25', '20']]);
+  assert.match(b.textContent, /Сдать груз в отделении/);
+  assert.match(b.textContent, /Объявленная стоимость: 100 ₽/);
+  assert.match(resultRows(w)['Страхование груза'], /сайт добавит сам/);
+  setValue(w, 'take', true);
+  setValue(w, 'qty', 2);
+  setValue(w, 'model', 'one');
 });
 
 test('коэффициент клиента 1,25 как в примере Артёма', async () => {
@@ -190,7 +288,7 @@ test('страховка 500 000 ₽ попадает в сумму (710 ₽)', 
   setValue(w, 'strah', 500000);
   await w.calcOne();
   const r = resultRows(w);
-  assert.equal(rub(r['Страховка, доп. услуги ПЭК']), 710);
+  assert.equal(money(r['Страхование груза']), 710);
   assert.equal(rub(r['Клиенту до терминала ПЭК (×1.2)']), clientRound((10417.68 + 710 + 3000) * 1.2));
 });
 
@@ -199,15 +297,15 @@ test('рохля 3000 ₽ за каждую кабину', async () => {
   setValue(w, 'model', 'two');
   setValue(w, 'qty', 2);
   await w.calcOne();
-  assert.match(resultRows(w)['Забор с производства'], /6\s?000/);
+  assert.match(resultRows(w)['Свой довоз рохлей'], /6\s?000/);
   assert.equal(w.totals({ auto: ['', '', 10000] }).own, 6000);
 });
 
-test('сверка Сходня → Челябинск: FOUR около 54 800 и SIX около 63 800 до адреса', async () => {
+test('сверка Сходня → Челябинск без поправки сайта: FOUR около 54 800 и SIX около 63 800 до адреса', async () => {
   // цифры из разбора API от 25.11 свой довоз и коэффициент 1.2
   for (const [m, want] of [['four', 54800], ['six', 63800]]) {
     const { w } = page();
-    setValue(w, 'model', m);
+      setValue(w, 'model', m);
     setValue(w, 'to', 'Челябинск, ул. Витебская, 4');
     await w.calcOne();
     const got = rub(resultRows(w)['Клиенту до адреса (×1.2)']);
@@ -237,7 +335,7 @@ test('случай а: доставка по Петербургу не доро�
   const { w } = page();
   setValue(w, 'model', 'one');
   await w.calcOne();
-  const d = rub(resultRows(w)['Доставка до адреса']);
+  const d = money(resultRows(w)['Доставка груза (до адреса)']);
   assert.ok(d >= 3000 && d <= 7000, 'доставка ' + d);
 });
 

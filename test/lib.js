@@ -45,8 +45,9 @@ function fixtureFetch(responses, log = []) {
 // выставить поле формы и сообщить странице об изменении
 function setValue(w, id, value) {
   const el = w.document.getElementById(id);
-  if (el.type === 'checkbox') el.checked = value; else el.value = String(value);
-  el.dispatchEvent(new w.Event(el.tagName === 'SELECT' || el.type === 'checkbox' ? 'change' : 'input', { bubbles: true }));
+  const tick = el.type === 'checkbox' || el.type === 'radio';
+  if (tick) el.checked = value; else el.value = String(value);
+  el.dispatchEvent(new w.Event(el.tagName === 'SELECT' || tick ? 'change' : 'input', { bubbles: true }));
 }
 const text = (w, id) => w.document.getElementById(id).textContent;
 const rub = s => Number(String(s).replace(/[^\d]/g, ''));
@@ -54,7 +55,7 @@ const rub = s => Number(String(s).replace(/[^\d]/g, ''));
 // строки таблицы результата в виде объекта подпись → текст значения
 function resultRows(w) {
   const out = {};
-  w.document.querySelectorAll('#result tr').forEach(tr => { const td = tr.querySelectorAll('td'); out[td[0].textContent] = td[1].textContent; });
+  w.document.querySelectorAll('#result tr').forEach(tr => { const td = tr.querySelectorAll('td'); if (td.length > 1) out[td[0].textContent] = td[1].textContent; });
   return out;
 }
 
