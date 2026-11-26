@@ -13,20 +13,21 @@
 <meta name="apple-mobile-web-app-title" content="Доставка ПЭК">
 <style>
   :root {
-    --blue:#315d7c; --blue-deep:#244a64; --mist:#eef3f6; --pale:#e2ebf1;
-    --ink:#222; --black:#000; --muted:#5d6a74; --line:#d3dde4;
+    /* цвета как в КП Inflow */
+    --blue:#23405c; --blue-deep:#17304a; --mist:#e6edf4; --pale:#d6e4f1; --pill:#8db8de; --accent:#f26a3c;
+    --ink:#23323f; --black:#1f3a52; --muted:#5b6b7a; --line:#dce5ee;
     --warn:#94570f; --bad:#b3261e;
   }
   * { box-sizing: border-box; }
-  body { margin:0; font:16px/1.45 "Segoe UI", "Open Sans", -apple-system, Roboto, Arial, sans-serif; color:var(--ink); background:var(--mist); }
-  .top { background:#fff; border-bottom:1px solid var(--line); }
-  .top div { max-width:720px; margin:0 auto; padding:14px 16px 12px; display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap; }
-  .top img { display:block; width:150px; height:auto; }
-  .top h1 { margin:0 0 3px; font-size:16px; font-weight:600; color:var(--ink); }
+  body { margin:0; font:16px/1.45 Calibri, "Segoe UI", "Open Sans", -apple-system, Roboto, Arial, sans-serif; color:var(--ink); background:var(--mist) linear-gradient(160deg, #eef3f8 0%, #e6edf4 45%, #dde7f0 100%) fixed; }
+  .top { background:var(--blue-deep); box-shadow:0 2px 10px rgba(23,48,74,.25); }
+  .top div { max-width:720px; margin:0 auto; padding:16px 16px 14px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .top img { display:block; width:130px; height:auto; }
+  .top h1 { margin:0; padding:5px 16px; border-radius:100px; background:var(--pill); color:var(--black); font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; box-shadow:0 2px 6px rgba(0,0,0,.25); }
   main { max-width:720px; margin:0 auto; padding:16px 12px 56px; }
-  h2 { display:flex; align-items:center; gap:10px; font-size:18px; font-weight:700; color:var(--black); margin:0 0 6px; }
+  h2 { display:flex; align-items:center; gap:10px; font:700 17px/1.3 Verdana, "Segoe UI", Arial, sans-serif; color:var(--black); margin:0 0 6px; }
   h2 .step { flex:none; width:26px; height:26px; border-radius:50%; background:var(--blue); color:#fff; font-size:14px; line-height:26px; text-align:center; }
-  .card { background:#fff; border:1px solid var(--line); border-radius:16px; padding:16px; margin-bottom:12px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:12px; box-shadow:0 3px 10px rgba(31,58,82,.08); }
   label { display:block; font-size:14px; color:var(--muted); margin:14px 0 5px; }
   input, select, button, textarea { font:inherit; font-size:16px; }
   input[type=number], input[type=text], select { width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:10px; background:#fff; color:var(--ink); }
@@ -112,13 +113,29 @@
   .coefs button.on { background:var(--blue); color:#fff; }
   .card.stale > * { opacity:.45; }
   .card.stale::before { content:'Данные изменились — нажмите «Рассчитать» ещё раз'; display:block; color:var(--warn); font-size:14px; font-weight:600; margin-bottom:8px; }
-  @media (max-width:420px) { .two { grid-template-columns:1fr; } .top img { width:130px; } .big { font-size:26px; } }
+  .pdfbtn { background:var(--accent); border-color:var(--accent); }
+  @media (hover:hover) { .pdfbtn:hover { background:#d9562b; border-color:#d9562b; } }
+  /* раздел как считает калькулятор */
+  .how h3 { font:700 14px/1.3 Verdana, "Segoe UI", Arial, sans-serif; color:var(--black); margin:20px 0 6px; }
+  .how h3:first-child { margin-top:14px; }
+  .how p, .how li { font-size:14px; color:var(--ink); margin:4px 0; }
+  .how ul { margin:4px 0; padding-left:20px; }
+  .formula { margin:6px 0; padding:10px 14px; border-radius:10px; background:var(--pale); border:1px solid var(--pill); color:var(--black) !important; font-weight:600; }
+  .formula b { color:var(--accent); }
+  .tags { display:flex; flex-wrap:wrap; gap:6px; list-style:none; padding:0 !important; }
+  .tags li { margin:0; padding:4px 12px; border-radius:100px; background:var(--blue); color:#fff !important; font-size:13px !important; }
+  .how table { font-size:14px; margin-top:6px; }
+  .how td { padding:6px 4px; }
+  .how tr.sum td { font-weight:700; color:var(--black); border-top:2px solid var(--pill); }
+  .how tr.res td { font-weight:700; color:#fff; background:var(--blue); }
+  .how tr.res td:first-child { border-radius:8px 0 0 8px; } .how tr.res td:last-child { border-radius:0 8px 8px 0; }
+  @media (max-width:420px) { .two { grid-template-columns:1fr; } .top img { width:110px; } .big { font-size:26px; } }
 </style>
 </head>
 <body>
 <header class="top"><div>
-  <img src="data:image/png;base64,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" alt="Inflow" width="400" height="156">
-  <h1>Доставка кабин через ПЭК</h1>
+  <img src="data:image/png;base64,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" alt="Inflow" alt="Inflow" width="400" height="156">
+  <h1>Расчёт доставки ПЭК</h1>
 </div></header>
 <main>
 
@@ -200,10 +217,8 @@
     <p class="err" id="resErr"></p>
     <div id="resBody">
       <table id="result"><tbody></tbody></table>
-      <details class="check" id="pecCheck" open>
-        <summary>Проверить на pecom.ru: что ввести</summary>
-        <div id="pecCheckBody"></div>
-      </details>
+      <div class="actions"><button class="pdfbtn" id="pdfBtn" type="button">Скачать PDF для клиента</button></div>
+      <p class="note" id="pdfNote">В PDF только суммы для клиента, без цен ПЭК и коэффициента.</p>
     </div>
   </section>
 
@@ -214,16 +229,39 @@
     <p class="note">Клиенту — с доставкой до адреса, с тем же коэффициентом и своими расходами.</p>
   </section>
 
-  <details class="card">
+  <details class="card how">
     <summary>Как считает калькулятор</summary>
-    <p class="note">Итоговая сумма ПЭК = перевозка + (забор, если включён) + доставка (до адреса) + страховка.<br>
-    Страховка обязательна: объявленная стоимость = (стоимость кабины + жёсткая упаковка) × число кабин по всем строкам.<br>
-    Клиенту = (итого ПЭК + свой довоз рохлей за каждую кабину + жёсткая упаковка за каждую кабину + прочие расходы) × коэффициент, округление вверх до 100 ₽.<br>
-    Разные модели в одном заказе: «+ Добавить другую модель». Все короба едут одной отправкой, ПЭК считает их вместе.<br>
-    Короба передаются в ПЭК плашмя: самая длинная сторона — длина, самая короткая — высота.<br>
-    Под результатом — что ввести на pecom.ru, чтобы проверить расчёт.<br>
-    Не входит: подъём на этаж, ожидание машины, хранение на терминале, упаковка ПЭК, скидки по договору с ПЭК.<br>
-    Адрес можно вводить целиком, как на pecom.ru. Цену доставки ПЭК считает по зоне: город или пригород. Зона показана в результате. Улицу и дом ПЭК не проверяет: адрес с ошибкой в улице посчитается по зоне города, поэтому для пригорода пишите населённый пункт, а не только город филиала.</p>
+    <h3>Сумма ПЭК</h3>
+    <p class="formula">Перевозка + забор <small>(если машина ПЭК)</small> + доставка по адресу + страхование</p>
+    <p class="note">Цифры приходят из личного кабинета ПЭК — те же, что на pecom.ru. Если кабинет не ответил, считает публичный калькулятор ПЭК, и результат помечается «приблизительно».</p>
+    <h3>Сумма клиенту</h3>
+    <p class="formula">(Сумма ПЭК + рохля × кабины + упаковка × кабины + прочие) × <b>коэффициент</b></p>
+    <p class="note">Округление вверх до 100 ₽. Коэффициент запоминается в браузере.</p>
+    <h3>Страховка</h3>
+    <p>Включена всегда. Объявленная стоимость = (стоимость кабины + жёсткая упаковка) × число кабин. ПЭК берёт минимум 575 ₽ при стоимости до 400 тыс. ₽, дальше 0,1% от стоимости и 390 ₽ за оформление.</p>
+    <h3>Груз</h3>
+    <ul>
+      <li>Короба передаются плашмя: длинная сторона — длина, короткая — высота. Если короб 2,4 м передать стоя, ПЭК считает забор и доставку по тарифу большой машины.</li>
+      <li>Разные модели в одном заказе едут одной отправкой, ПЭК считает их вместе.</li>
+    </ul>
+    <h3>Адрес</h3>
+    <p>Вводите целиком, как на pecom.ru. Цена доставки зависит от зоны ПЭК: город, пригород или отдельный населённый пункт — зона видна в результате. Улицу ПЭК не проверяет.</p>
+    <p>Москва и область: ПЭК не везёт, доставку и монтаж считаем сами (One — около 40 000 ₽, две кабины — 65–80 тыс. ₽).</p>
+    <h3>Не входит</h3>
+    <ul class="tags"><li>Подъём на этаж</li><li>Ожидание машины</li><li>Хранение на терминале</li><li>Упаковка ПЭК</li><li>Скидки по договору с ПЭК</li></ul>
+    <h3>Пример</h3>
+    <p class="note">Одноместная, Сходня → Санкт-Петербург, до адреса, свой довоз, кабина 325 000 ₽, упаковка 28 000 ₽, коэффициент 1,2. Цены ПЭК на 26.11.2026.</p>
+    <table>
+      <tr><td>Перевозка</td><td>11 459,45 ₽</td></tr>
+      <tr><td>Доставка по адресу</td><td>3 047,50 ₽</td></tr>
+      <tr><td>Страхование (от 353 000 ₽)</td><td>575,10 ₽</td></tr>
+      <tr class="sum"><td>Сумма ПЭК</td><td>15 082,05 ₽</td></tr>
+      <tr><td>Рохля</td><td>3 000 ₽</td></tr>
+      <tr><td>Жёсткая упаковка</td><td>28 000 ₽</td></tr>
+      <tr class="sum"><td>Расходы всего</td><td>46 082,05 ₽</td></tr>
+      <tr><td>× 1,2</td><td>55 298,46 ₽</td></tr>
+      <tr class="res"><td>Клиенту, вверх до 100 ₽</td><td>55 300 ₽</td></tr>
+    </table>
   </details>
 </main>
 
@@ -652,25 +690,12 @@ async function calcOne() {
     $('result').querySelector('tbody').innerHTML = rows.map(r => r[2] === 'sec'
       ? `<tr class="sec"><td colspan="2">${r[0]}</td></tr>`
       : `<tr><td>${r[0]}</td><td class="${r[2] || ''}">${r[1]}</td></tr>`).join('');
-    // что вводить на сайте pecom.ru чтобы проверить расчёт
-    // места каждой позиции с числом одинаковых мест
-    const pl = [];
-    ls.forEach(el => placesFor(el).forEach(p => pl.push({ p, n: lineQty(el) })));
-    const same = ls.length > 1 || q > 1;
-    $('pecCheckBody').innerHTML =
-      `<ol class="note">
-        <li>Включите «Рассчитать с точными габаритами», размеры в метрах.</li>
-        <li>Добавьте ${pl.length} ${plural(pl.length, 'место', 'места', 'мест')}${same ? ', у каждого «Одинаковые места» — число из последней колонки' : ''}:</li>
-      </ol>
-      <table class="places"><thead><tr><th>№</th><th>Д × Ш × В, м</th><th>Вес, кг</th>${same ? '<th>Одинаковые места</th>' : ''}</tr></thead><tbody>` +
-      pl.map(({ p, n }, i) => `<tr><td>${i + 1}</td><td>${String(p[1]).replace('.', ',')} × ${String(p[0]).replace('.', ',')} × ${String(p[2]).replace('.', ',')}</td><td>${p[4]}</td>${same ? `<td>${n}</td>` : ''}</tr>`).join('') +
-      `</tbody></table>
-      <ol class="note" start="3">
-        <li>Откуда: <b>Московская обл., г. Химки, мкрн Сходня, ул. Ленинградская, д. 4</b> — ${takeOn ? '«Забрать по адресу»' : '«Сдать груз в отделении»'}.</li>
-        <li>Куда: <b>${esc(t.toName || chosen.name)}</b> — «Доставить по адресу» (для суммы до адреса).</li>
-        <li>Объявленная стоимость: <b>${fmt(decl)}</b>.</li>
-        <li>Сравните строки «Автоперевозка», ${takeOn ? '«Забор груза», ' : ''}«Доставка груза», «Страхование груза» и «Ориентировочная сумма» — они должны совпасть до копейки.</li>
-      </ol>`;
+    // данные для pdf клиенту только суммы для клиента без цен ПЭК и коэффициента
+    const all = allPlaces();
+    lastCheck = { date: new Date(), address: $('to').value.trim(), toName: t.toName || chosen.name, days: t.days,
+      lines: ls.map(el => ({ name: shortName(el), qty: lineQty(el) })), places: all.length,
+      vol: all.reduce((x, p) => x + p[3], 0), kg: all.reduce((x, p) => x + p[4], 0),
+      clientDoor: t.clientDoor, clientTerminal: t.clientTerminal, decl, takeOn, pack: t.pack };
     $('resErr').textContent = (approx ? `Расчёт приблизительный: кабинет ПЭК не ответил (${why}), посчитано публичным калькулятором ПЭК — автоперевозка может быть ниже, чем на pecom.ru. ` : '') + t.errors.join(' ');
     $('resErr').className = approx ? 'warn' : 'err';
     $('resBody').hidden = false; $('resultCard').classList.remove('stale'); $('resultCard').hidden = false;
@@ -702,6 +727,121 @@ async function calcMatrix() {
     out.map(r => `<tr><td>${r[0]}</td>${r.slice(1, 6).map(v => `<td>${fmt(v)}</td>`).join('')}<td>${r[6]}</td></tr>`).join('') + '</tbody>';
   $('matrixCard').classList.remove('stale'); $('matrixCard').hidden = false;
   $('matrixCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// чек доставки для клиента в PDF в стиле КП Inflow
+// библиотеку pdfmake грузим только по нажатию кнопки чтобы страница открывалась быстро
+const PDFMAKE = 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/';
+const CONTACTS = 'Самойлов Артём · +7 (925) 574-09-50 · ifo-c@ya.ru · inflow-office.ru';
+let lastCheck = null;
+function loadScript(src) {
+  return new Promise((ok, bad) => { const sc = document.createElement('script'); sc.src = src; sc.onload = ok; sc.onerror = () => bad(new Error('нет связи с ' + src.split('/')[2])); document.head.appendChild(sc); });
+}
+async function ensurePdfMake() {
+  if (!(window.pdfMake && window.pdfMake.createPdf)) await loadScript(PDFMAKE + 'pdfmake.min.js');
+  if (!(window.pdfMake.vfs && window.pdfMake.vfs['Roboto-Regular.ttf'])) await loadScript(PDFMAKE + 'vfs_fonts.min.js');
+  return window.pdfMake;
+}
+const nb = s => String(s).replace(/ /g, '\u00a0');
+const rubPdf = n => nb(groupDigits(String(Math.round(n)))) + '\u00a0₽';
+const dateRu = d => ('0' + d.getDate()).slice(-2) + '.' + ('0' + (d.getMonth() + 1)).slice(-2) + '.' + d.getFullYear();
+// описание страницы pdf все блоки стоят на своих местах как в КП
+function buildCheck(c, logo) {
+  const K = { navy: '#17304A', dark: '#23405C', title: '#1F3A52', text: '#23323F', muted: '#5B6B7A', pill: '#8DB8DE', accent: '#F26A3C', line: '#DCE5EE', price: '#D6E4F1', priceLine: '#8FB0CC', bg: '#E6EDF4', shadow: '#C5D3E0' };
+  const W = 595.28, M = 40, CW = W - 2 * M, G = 14, HW = (CW - G) / 2;
+  const q = c.lines.reduce((x, l) => x + l.qty, 0);
+  const m3 = c.vol.toFixed(2).replace('.', ',');
+  const days = c.days ? String(c.days).replace(/\s*-\s*/, '–') + ' ' + plural(Number(String(c.days).split(/\D/).pop()) || 5, 'день', 'дня', 'дней') : null;
+  const shapes = [], content = [];
+  const box = (x, y, w, h, fill, line) => {
+    shapes.push({ type: 'rect', x: x + 1.5, y: y + 2.5, w, h, r: 9, color: K.shadow, fillOpacity: 0.6 });
+    shapes.push({ type: 'rect', x, y, w, h, r: 9, color: fill, lineColor: line || fill, lineWidth: 0.8 });
+  };
+  const at = (x, y, w, item) => content.push({ absolutePosition: { x, y }, columns: [{ width: w, stack: [item] }] });
+  const lineH = (txt, w, size) => Math.max(1, Math.ceil(txt.length * size * 0.5 / w));
+  const bullets = (items, color, size) => ({ ul: items, color, fontSize: size, lineHeight: 1.25, markerColor: color });
+  // шапка
+  const city = c.toName.replace(/ — филиал .*$/, '').replace(/\s*\(.*$/, '');
+  const title = ('Доставка в ' + city).toUpperCase();
+  const tSize = title.length > 26 ? (title.length > 34 ? 17 : 20) : 24;
+  if (logo) content.push({ image: logo, width: 92, absolutePosition: { x: M, y: 30 } });
+  shapes.push({ type: 'rect', x: W - M - 168 + 1, y: 30 + 2, w: 168, h: 22, r: 11, color: '#0E2236', fillOpacity: 0.5 });
+  shapes.push({ type: 'rect', x: W - M - 168, y: 30, w: 168, h: 22, r: 11, color: K.pill });
+  at(W - M - 168, 36, 168, { text: 'РАСЧЁТ ДОСТАВКИ', alignment: 'center', bold: true, fontSize: 8, color: K.title, characterSpacing: 0.6 });
+  at(M, 84, CW, { text: title, bold: true, fontSize: tSize, color: '#FFFFFF' });
+  at(M, 124, CW, { text: 'Из Химок (Сходня) транспортной компанией ПЭК' + (days ? ' · в пути ' + days : ''), bold: true, fontSize: 11, color: K.pill });
+  // цены
+  let y = 182;
+  at(M, y, HW, { text: 'До терминала ПЭК', fontSize: 9, color: K.muted, alignment: 'center' });
+  at(M + HW + G, y, HW, { text: 'До адреса', fontSize: 9, color: K.muted, alignment: 'center' });
+  y += 14;
+  box(M, y, HW, 46, K.price, K.priceLine);
+  box(M + HW + G, y, HW, 46, K.price, K.priceLine);
+  at(M, y + 12, HW, { text: rubPdf(c.clientTerminal), bold: true, fontSize: 20, color: K.title, alignment: 'center' });
+  at(M + HW + G, y + 12, HW, { text: rubPdf(c.clientDoor), bold: true, fontSize: 20, color: K.title, alignment: 'center' });
+  y += 46 + 22;
+  // груз и маршрут
+  const cargo = c.lines.map(l => `Кабина ${l.name.toLowerCase()} — ${l.qty} шт.`);
+  cargo.push(`${q} ${plural(q, 'кабина', 'кабины', 'кабин')}, ${c.places} ${plural(c.places, 'место', 'места', 'мест')}, ${m3} м³, ${nb(groupDigits(String(c.kg)))} кг`);
+  const route = [
+    { text: [{ text: 'Откуда: ', color: K.muted }, 'производство Inflow, Московская обл., г. Химки, мкрн Сходня'] },
+    { text: [{ text: 'Куда: ', color: K.muted }, c.address] },
+  ];
+  if (days) route.push({ text: [{ text: 'Срок в пути: ', color: K.muted }, days + ' от сдачи груза'] });
+  const hCargo = 40 + cargo.reduce((x, t) => x + lineH(t, HW - 40, 10) * 15, 0);
+  const hRoute = 40 + [68, c.address.length + 6, 40].slice(0, route.length).reduce((x, n) => x + lineH('x'.repeat(n), HW - 28, 10) * 15, 0);
+  let h = Math.max(hCargo, hRoute, 90);
+  box(M, y, HW, h, '#FFFFFF', K.line);
+  box(M + HW + G, y, HW, h, '#FFFFFF', K.line);
+  at(M + 14, y + 12, HW - 28, { text: 'Что везём', bold: true, fontSize: 12, color: K.title });
+  at(M + 14, y + 32, HW - 28, bullets(cargo, K.text, 10));
+  at(M + HW + G + 14, y + 12, HW - 28, { text: 'Маршрут', bold: true, fontSize: 12, color: K.title });
+  at(M + HW + G + 14, y + 32, HW - 28, { stack: route, fontSize: 10, color: K.text, lineHeight: 1.25 });
+  y += h + G;
+  // что входит и не входит
+  const inc = [c.takeOn ? 'Забор груза с производства машиной ПЭК' : 'Доставка груза до терминала ПЭК', 'Перевозка ПЭК до ' + city, 'Страхование груза на ' + rubPdf(c.decl)];
+  if (c.pack > 0) inc.push('Жёсткая упаковка кабин');
+  inc.push('Доставка по адресу — в сумме «До адреса»');
+  const exc = ['Подъём на этаж', 'Ожидание машины', 'Хранение груза на терминале ПЭК'];
+  h = 40 + Math.max(inc.reduce((x, t) => x + lineH(t, HW - 40, 10) * 15, 0), exc.length * 15);
+  box(M, y, HW, h, '#FFFFFF', K.line);
+  box(M + HW + G, y, HW, h, K.dark);
+  at(M + 14, y + 12, HW - 28, { text: 'Входит в стоимость', bold: true, fontSize: 12, color: K.title });
+  at(M + 14, y + 32, HW - 28, bullets(inc, K.text, 10));
+  at(M + HW + G + 14, y + 12, HW - 28, { text: 'Не входит', bold: true, fontSize: 12, color: '#FFFFFF' });
+  at(M + HW + G + 14, y + 32, HW - 28, bullets(exc, '#C9D6E2', 10));
+  // подвал прижат к низу листа как в КП
+  y = Math.max(y + h + 18, 770);
+  at(M, y, CW, { text: `Расчёт по тарифам ПЭК на ${dateRu(c.date)}. Если ПЭК изменит тарифы, сумма может измениться.`, fontSize: 8.5, color: K.muted });
+  at(M, y + 18, CW, { text: CONTACTS, bold: true, fontSize: 10, color: K.title });
+  const bg = [
+    { type: 'rect', x: 0, y: 0, w: W, h: 841, color: K.bg },
+    // светлые полосы как на фоне КП все фигуры внутри листа иначе pdfmake не рисует фон
+    { type: 'polyline', closePath: true, color: '#FFFFFF', fillOpacity: 0.35, points: [{ x: W, y: 430 }, { x: W, y: 520 }, { x: 250, y: 841 }, { x: 140, y: 841 }] },
+    { type: 'polyline', closePath: true, color: '#FFFFFF', fillOpacity: 0.25, points: [{ x: 0, y: 330 }, { x: 0, y: 380 }, { x: 330, y: 841 }, { x: 290, y: 841 }] },
+    { type: 'rect', x: 0, y: 0, w: W, h: 160, color: K.navy },
+  ];
+  return {
+    pageSize: 'A4', pageMargins: [0, 0, 0, 0],
+    // пустую строку pdfmake заменяет своим названием поэтому программа и автор это пробел
+    info: { title: 'Расчёт доставки', author: ' ', subject: '', keywords: '', creator: ' ', producer: ' ' },
+    defaultStyle: { font: 'Roboto', fontSize: 10, color: K.text },
+    background: () => ({ canvas: bg }),
+    content: [{ canvas: shapes, absolutePosition: { x: 0, y: 0 } }].concat(content),
+  };
+}
+function checkFileName(c) { return `Расчёт доставки — ${c.toName.replace(/ — филиал .*$/, '').replace(/[\\/:*?"<>|]/g, '')} — ${dateRu(c.date)}.pdf`; }
+async function downloadPdf() {
+  if (!lastCheck || $('resultCard').classList.contains('stale')) { $('pdfNote').textContent = 'Сначала нажмите «Рассчитать».'; return; }
+  const btn = $('pdfBtn'), was = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Готовлю PDF…';
+  try {
+    const pm = await ensurePdfMake();
+    const logo = document.querySelector('.top img').src;
+    pm.createPdf(buildCheck(lastCheck, logo)).download(checkFileName(lastCheck));
+    $('pdfNote').textContent = 'В PDF только суммы для клиента, без цен ПЭК и коэффициента.';
+  } catch (e) { $('pdfNote').textContent = 'Не получилось сделать PDF: ' + e.message + '. Проверьте интернет и нажмите ещё раз.'; }
+  finally { btn.disabled = false; btn.textContent = was; }
 }
 
 async function copy(text) {
@@ -763,6 +903,7 @@ syncPickup();
 // любое изменение в форме помечает показанный результат как устаревший
 document.querySelectorAll('main > section:not(#resultCard):not(#matrixCard)').forEach(s => ['input', 'change'].forEach(ev => s.addEventListener(ev, markStale)));
 $('calc').addEventListener('click', calcOne);
+$('pdfBtn').addEventListener('click', downloadPdf);
 $('matrix').addEventListener('click', calcMatrix);
 $('copyMatrix').addEventListener('click', async () => {
   const ok = await copy(lastMatrix.map(r => r.map(v => typeof v === 'number' ? Math.round(v) : (v == null ? '' : v)).join('\t')).join('\n'));

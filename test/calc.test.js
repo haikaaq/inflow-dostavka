@@ -279,22 +279,6 @@ test('расчёт одной кабины: строки результата и
   assert.equal(w.document.getElementById('siteAdj'), null);
 });
 
-test('блок что ввести на pecom.ru: места в метрах и вес как в расчёте', async () => {
-  const { w } = page();
-  setValue(w, 'model', 'one');
-  await w.calcOne();
-  const b = w.document.getElementById('pecCheckBody');
-  const rows = [...b.querySelectorAll('table.places tbody tr')].map(tr => [...tr.children].map(td => td.textContent));
-  // одноместная из письма Артёма вес 420 делится по объёму 205 131 64 20 так вводили на сайте 26.11
-  assert.deepEqual(rows, [['1', '2,4 × 1,2 × 0,35', '205'], ['2', '2,3 × 1 × 0,28', '131'], ['3', '2,1 × 1 × 0,15', '64'], ['4', '1 × 0,4 × 0,25', '20']]);
-  assert.match(b.textContent, /Сдать груз в отделении/);
-  assert.match(b.textContent, /Объявленная стоимость: 100 ₽/);
-  assert.match(resultRows(w)['Страхование груза'], /не посчитано/);
-  setValue(w, 'take', true);
-  setValue(w, 'qty', 2);
-  setValue(w, 'model', 'one');
-});
-
 test('коэффициент клиента 1,25 как в примере Артёма', async () => {
   const { w } = page();
   setValue(w, 'model', 'one');
@@ -500,7 +484,6 @@ test('страховка всегда: объявленная стоимость
   assert.equal(req.isInsurance, true);
   assert.equal(req.isInsurancePrice, 706000);
   assert.equal(req.cargos.length, 8);
-  assert.match(w.document.getElementById('pecCheckBody').textContent, /Объявленная стоимость: 706\s000 ₽/);
   assert.match(resultRows(w)['Объявленная стоимость'], /706\s000/);
   // запасной публичный расчёт тоже со страховкой
   const log = [];
@@ -566,10 +549,6 @@ test('несколько разных моделей: все короба одн
   const r = resultRows(w);
   assert.match(r['Груз'], /3 кабины \(Двухместная × 1 \+ Шестиместная × 2\), 24 места/);
   assert.match(r['Свой довоз рохлей'], /9\s000/);
-  // на pecom.ru вводить места с числом одинаковых
-  const rows = [...w.document.querySelectorAll('#pecCheckBody table.places tbody tr')].map(tr => tr.lastElementChild.textContent);
-  assert.equal(rows.length, 15);
-  assert.deepEqual([rows[0], rows[6]], ['1', '2']);
   // короба второй позиции правятся отдельно от первой
   el.querySelector('.addBox').click();
   assert.equal(w.allPlaces().length, 26);
@@ -620,4 +599,48 @@ test('Москва и область: без автоперевозки поня
   await w.calcOne();
   assert.match(text(w, 'resErr'), /Москве или области/);
   assert.equal(w.document.getElementById('resBody').hidden, true);
+});
+
+// pdf для клиента вместо блока проверки на pecom.ru
+const allText = node => typeof node === 'string' ? node : Array.isArray(node) ? node.map(allText).join(' ') : node && typeof node === 'object' ? Object.values(node).map(allText).join(' ') : '';
+
+test('pdf для клиента: суммы клиенту без цен ПЭК и коэффициента', async () => {
+  const cab = cabFixture();
+  const w = loadPage({ fetchImpl: fixtureFetch(ALL, [], cab.response, []) });
+  assert.equal(w.document.getElementById('pecCheck'), null);
+  setValue(w, 'model', 'one');
+  setValue(w, 'price', 325000);
+  setValue(w, 'pack', 28000);
+  await w.calcOne();
+  const c = w.eval('lastCheck');
+  assert.equal(c.clientDoor, 55300);   // пример из раздела как считает калькулятор
+  const dd = w.buildCheck(c, null);
+  const txt = allText(dd.content).replace(/ /g, ' ');
+  assert.match(txt, /ДОСТАВКА В САНКТ-ПЕТЕРБУРГ/);
+  assert.match(txt, /55 300 ₽/);
+  assert.match(txt, /Страхование груза на 353 000 ₽/);
+  assert.match(txt, /Жёсткая упаковка кабин/);
+  assert.match(txt, /Кабина одноместная — 1 шт\./);
+  assert.match(txt, /Самойлов Артём/);
+  // внутренние цифры клиенту не показываем
+  for (const bad of [/11 459/, /15 082/, /1,2\b|×/, /Автоперевозка/, /рохл/i, /коэффициент/i]) assert.doesNotMatch(txt, bad, String(bad));
+  // свойства файла без автора и программы
+  assert.deepEqual(Object.values(dd.info).slice(1).map(v => v.trim()), ['', '', '', '', '']);
+  assert.equal(w.checkFileName(c).startsWith('Расчёт доставки — Санкт-Петербург — '), true);
+});
+
+test('pdf: без расчёта или после изменений просит пересчитать, без интернета понятная ошибка', async () => {
+  const cab = cabFixture();
+  const w = loadPage({ fetchImpl: fixtureFetch(ALL, [], cab.response, []) });
+  await w.downloadPdf();
+  assert.match(text(w, 'pdfNote'), /Сначала нажмите «Рассчитать»/);
+  await w.calcOne();
+  // библиотека pdf не загрузится в тестах потому что сети нет
+  w.document.head.appendChild = function (el) { setTimeout(() => el.onerror(), 0); return el; };
+  await w.downloadPdf();
+  assert.match(text(w, 'pdfNote'), /Не получилось сделать PDF: нет связи с cdnjs\.cloudflare\.com/);
+  assert.equal(w.document.getElementById('pdfBtn').disabled, false);
+  setValue(w, 'price', 1);
+  await w.downloadPdf();
+  assert.match(text(w, 'pdfNote'), /Сначала нажмите «Рассчитать»/);
 });
