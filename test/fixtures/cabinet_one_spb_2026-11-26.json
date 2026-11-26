@@ -1,0 +1,135 @@
+{
+ "captured": "2026-11-26",
+ "source": "кабинет ПЭК через pek-proxy",
+ "request": {
+  "types": [
+   3
+  ],
+  "cargos": [
+   {
+    "length": 2.4,
+    "width": 1.2,
+    "height": 0.35,
+    "weight": 205
+   },
+   {
+    "length": 2.3,
+    "width": 1,
+    "height": 0.28,
+    "weight": 131
+   },
+   {
+    "length": 2.1,
+    "width": 1,
+    "height": 0.15,
+    "weight": 64
+   },
+   {
+    "length": 1,
+    "width": 0.4,
+    "height": 0.25,
+    "weight": 20
+   }
+  ],
+  "plannedDateTime": "2026-11-27T10:00:00",
+  "isInsurance": true,
+  "isInsurancePrice": 100,
+  "pickup": {
+   "address": "Московская обл., г. Химки, мкрн Сходня, ул. Ленинградская, д. 4"
+  },
+  "isPickUp": true,
+  "delivery": {
+   "address": "Санкт-Петербург"
+  },
+  "isDelivery": true
+ },
+ "response": {
+  "hasError": false,
+  "errorMessage": null,
+  "currencyCode": "643",
+  "branchSenderUID": "b473ce9f-dd68-44ea-a4b2-4cb63b6e970d",
+  "branchSender": "Москва Восток",
+  "branchReceiverUID": "64adbe2c-a185-11dc-a911-000a5e19ccb4",
+  "branchReceiver": "Санкт-Петербург",
+  "transfers": [
+   {
+    "type": 3,
+    "transportingType": null,
+    "hasError": false,
+    "errorMessage": null,
+    "costTotal": 19107.05,
+    "estDeliveryTime": 6,
+    "services": [
+     {
+      "serviceType": "Перевозка",
+      "senderCity": "Москва Восток",
+      "cost": 11459.45,
+      "info": "Автоперевозка",
+      "services": null
+     },
+     {
+      "serviceType": "Перевозка",
+      "senderCity": "Москва Восток",
+      "cost": 405.0,
+      "info": "Страхование",
+      "insuranceTerm": false,
+      "services": null
+     },
+     {
+      "serviceType": "Перевозка",
+      "senderCity": "Москва Восток",
+      "cost": 170.1,
+      "info": "Организация страхования груза",
+      "services": null
+     },
+     {
+      "serviceType": "Перевозка",
+      "senderCity": "Москва Восток",
+      "cost": 4025.0,
+      "info": "Забор груза",
+      "services": []
+     },
+     {
+      "serviceType": "Перевозка",
+      "senderCity": "Москва Восток",
+      "cost": 3047.5,
+      "info": "Доставка груза",
+      "services": []
+     }
+    ]
+   }
+  ],
+  "transportingTimes": [
+   "0001-01-01T00:00:01",
+   "0001-01-01T15:00:01"
+  ],
+  "commonTerms": [
+   {
+    "type": 3,
+    "transportingType": null,
+    "branchSender": "Москва Восток",
+    "branchReceiver": "Санкт-Петербург",
+    "discountedDeliveryWeekDays": [],
+    "transporting": [
+     "2",
+     "3"
+    ],
+    "transportingWithDelivery": [
+     "3",
+     "4"
+    ],
+    "transportingWithPickup": "5",
+    "transportingWithDeliveryWithPickup": "6",
+    "senderShippingDays": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7
+    ]
+   }
+  ]
+ }
+}

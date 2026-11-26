@@ -32,9 +32,15 @@ function loadPage({ fetchImpl, fast = false, online = true, storage = null, noSt
 function readFixture(name) {
   return JSON.parse(fs.readFileSync(path.join(FIX, name), 'utf8'));
 }
-function fixtureFetch(responses, log = []) {
+// запросы к посреднику кабинета ПЭК идут отдельно если ответа кабинета нет считаем что он не ответил
+function fixtureFetch(responses, log = [], cabinet = null, cabLog = []) {
   return async (url, opt = {}) => {
     const body = opt.body || '';
+    if (String(url).includes('pek-proxy')) {
+      cabLog.push(body);
+      if (!cabinet) throw new Error('кабинет в тестах отключён');
+      return { ok: true, status: 200, json: async () => JSON.parse(JSON.stringify(cabinet)) };
+    }
     log.push(body);
     if (!(body in responses.requests)) throw new Error('нет фикстуры для запроса ' + body.slice(0, 200));
     const data = responses.requests[body].response;

@@ -438,6 +438,41 @@ async function pek(fromId, toId) {
     }
   }
 }
+
+// расчёт как на сайте pecom.ru через кабинет ПЭК
+// ключ кабинета хранится у посредника на Cloudflare и в эту страницу не попадает
+const PROXY = 'https://pek-proxy.inflow-dostavka.workers.dev/calculator/calculateprice/';
+const PROD_ADDR = 'Московская обл., г. Химки, мкрн Сходня, ул. Ленинградская, д. 4';
+// дата сдачи груза завтра в 10 утра кабинет без даты не считает
+function planDate() { return new Date(Date.now() + 864e5).toISOString().slice(0, 10) + 'T10:00:00'; }
+async function pekSite(toAddress) {
+  const one = placesForOneCabin(), cargos = [];
+  for (let c = 0; c < qty(); c++) for (const p of one) cargos.push({ length: p[1], width: p[0], height: p[2], weight: p[4] });
+  const strah = Number($('strah').value) || 0;
+  // считаем сразу с забором и доставкой по адресу а вариант со своим довозом до терминала получается вычитанием
+  // объявленная стоимость по умолчанию 100 рублей как на сайте pecom.ru
+  const body = { types: [3], cargos, plannedDateTime: planDate(), isInsurance: true, isInsurancePrice: strah || 100,
+    pickup: { address: PROD_ADDR }, isPickUp: true, delivery: { address: toAddress }, isDelivery: true };
+  const res = await fetch(PROXY, { method: 'POST', headers: { 'Content-Type': 'application/json;charset=utf-8' }, body: JSON.stringify(body) });
+  const r = await res.json();
+  if (!res.ok || r.error || r.proxyError) {
+    const f = r.error && r.error.fields && r.error.fields[0];
+    throw new Error(f ? f.Value.join(' ') : (r.proxyError || (r.error && r.error.title) || 'кабинет ПЭК ответил ошибкой ' + res.status));
+  }
+  const t = (r.transfers || []).find(x => x.type === 3);
+  if (!t || t.hasError) throw new Error((t && t.errorMessage) || 'кабинет ПЭК не посчитал автоперевозку');
+  const cost = name => t.services.filter(s => s.info === name).reduce((a, s) => a + (Number(s.cost) || 0), 0);
+  const terms = (r.commonTerms || []).find(x => x.type === 3);
+  const days = terms && terms.transporting ? terms.transporting.join(' - ') : (t.estDeliveryTime || null);
+  // отдаём в том же виде что публичный расчёт чтобы дальше всё считалось одинаково
+  return { take: ['', '', cost('Забор груза')], auto: ['', '', cost('Автоперевозка')], deliver: ['', r.branchReceiver || '', cost('Доставка груза')],
+    ADD_1: { 3: cost('Страхование') + cost('Организация страхования груза') }, periods_days: days };
+}
+// сначала кабинет как на сайте а если он не ответил публичный расчёт с пометкой приблизительно
+async function pekBest(toAddress, toId) {
+  try { return { j: await pekSite(toAddress), approx: false }; }
+  catch (e) { return { j: await pek(Number($('from').value), toId), approx: true, why: e.message }; }
+}
 function totals(j) {
   const takeOn = $('take').checked;
   // третий элемент массива ответа ПЭК это сумма а если массива нет то суммы тоже нет
@@ -462,7 +497,7 @@ function totals(j) {
     days: j.periods_days || null, toName: (j.deliver && j.deliver[1]) || null,
     errors: [...new Set([...(j.error || []), ...(j.error_auto || [])])].filter(e => !/Авиа/i.test(e)) };
 }
-function showError(msg) { $('resultCard').classList.remove('stale'); $('resultCard').hidden = false; $('resBody').hidden = true; $('resErr').textContent = msg; $('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+function showError(msg) { $('resErr').className = 'err'; $('resultCard').classList.remove('stale'); $('resultCard').hidden = false; $('resBody').hidden = true; $('resErr').textContent = msg; $('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 
 async function calcOne() {
   toState();
@@ -479,7 +514,7 @@ async function calcOne() {
   if (prob) { showError(prob); return; }
   $('calc').disabled = true; $('calc').textContent = 'Считаю…';
   try {
-    const j = await pek(Number($('from').value), chosen.id);
+    const { j, approx, why } = await pekBest($('to').value.trim(), chosen.id);
     const t = totals(j);
     if (t.auto == null) { showError('ПЭК не посчитал автоперевозку' + (t.errors.length ? ': ' + t.errors.join(' ') : '.') + ' Уточните у менеджера ПЭК.'); return; }
     const q = qty(), places = placesForOneCabin().length * q;
@@ -523,9 +558,10 @@ async function calcOne() {
         <li>Откуда: <b>Московская обл., г. Химки, мкрн Сходня, ул. Ленинградская, д. 4</b> — ${takeOn ? '«Забрать по адресу»' : '«Сдать груз в отделении»'}.</li>
         <li>Куда: <b>${esc(t.toName || chosen.name)}</b> — «Доставить по адресу» (для суммы до адреса).</li>
         <li>Объявленная стоимость: <b>${strah ? strah.toLocaleString('ru-RU') : '100'} ₽</b>.</li>
-        <li>Сравните строки: «Автоперевозка», ${takeOn ? '«Забор груза», ' : ''}«Доставка груза». Страхование сайт считает по своим правилам и добавляет всегда, даже при 100 ₽ (для одноместной около 420–580 ₽), поэтому «Ориентировочная сумма» на сайте больше на эту страховку.</li>
+        <li>Сравните строки «Автоперевозка», ${takeOn ? '«Забор груза», ' : ''}«Доставка груза», «Страхование груза» и «Ориентировочная сумма» — они должны совпасть до копейки.</li>
       </ol>`;
-    $('resErr').textContent = t.errors.join(' ');
+    $('resErr').textContent = (approx ? `Расчёт приблизительный: кабинет ПЭК не ответил (${why}), посчитано публичным калькулятором ПЭК — автоперевозка может быть ниже, чем на pecom.ru. ` : '') + t.errors.join(' ');
+    $('resErr').className = approx ? 'warn' : 'err';
     $('resBody').hidden = false; $('resultCard').classList.remove('stale'); $('resultCard').hidden = false;
     $('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) { showError('Не получилось посчитать: ' + e.message + '.'); }
@@ -543,7 +579,7 @@ async function calcMatrix() {
   try {
     for (const [name, id] of MATRIX_CITIES) {   // по очереди потому что ПЭК обрывает много одновременных запросов
       $('matrix').textContent = `Считаю ${out.length + 1} из ${MATRIX_CITIES.length}…`;
-      try { const t = totals(await pek(from, id)); out.push([name, t.auto, t.deliver, t.pekDoor, t.clientDoor, t.clientTerminal, t.auto == null ? (t.errors[0] || 'не считает') : (t.days || '—')]); }
+      try { const t = totals((await pekBest(name, id)).j); out.push([name, t.auto, t.deliver, t.pekDoor, t.clientDoor, t.clientTerminal, t.auto == null ? (t.errors[0] || 'не считает') : (t.days || '—')]); }
       catch (e) { out.push([name, null, null, null, null, null, 'нет ответа']); }
     }
   } finally { $('matrix').disabled = false; $('matrix').textContent = 'По 15 крупным городам'; }

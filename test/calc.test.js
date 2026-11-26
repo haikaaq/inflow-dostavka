@@ -173,6 +173,41 @@ test('количество кабин: кнопки плюс и минус, не
   assert.equal($('qtyMinus').classList.contains('off'), true);
 });
 
+test('расчёт через кабинет ПЭК: цифры как на сайте pecom.ru', async () => {
+  // настоящий ответ кабинета 26.11 одноместная из Сходни в Петербург объявленная стоимость 100
+  const cab = readFixture('cabinet_one_spb_2026-11-26.json');
+  const pub = [], sent = [];
+  const w = loadPage({ fetchImpl: fixtureFetch(ALL, pub, cab.response, sent) });
+  setValue(w, 'model', 'one');
+  await w.calcOne();
+  // калькулятор отправил те же места что ввели на сайте и адрес производства
+  const req = JSON.parse(sent[0]);
+  assert.deepEqual(req.cargos, cab.request.cargos);
+  assert.equal(req.pickup.address, cab.request.pickup.address);
+  assert.equal(req.delivery.address, 'Санкт-Петербург');
+  assert.equal(req.isInsurancePrice, 100);
+  assert.equal(pub.length, 0, 'публичный расчёт не нужен');
+  const r = resultRows(w);
+  assert.equal(money(r['Автоперевозка']), 11459.45);
+  assert.equal(money(r['Доставка груза (до адреса)']), 3047.5);
+  assert.equal(money(r['Страхование груза']), 575.1);
+  assert.equal(money(r['Ориентировочная сумма до адреса']), 15082.05);
+  assert.equal(r['Срок в пути'], '2 - 3 дн.');
+  assert.doesNotMatch(text(w, 'resErr'), /приблизительный/);
+  // забор машиной ПЭК 4025 как на сайте
+  setValue(w, 'take', true);
+  await w.calcOne();
+  assert.equal(money(resultRows(w)['Забор груза']), 4025);
+});
+
+test('кабинет не ответил: публичный расчёт с пометкой приблизительно', async () => {
+  const { w } = page();
+  setValue(w, 'model', 'one');
+  await w.calcOne();
+  assert.match(text(w, 'resErr'), /Расчёт приблизительный/);
+  assert.equal(money(resultRows(w)['Автоперевозка']), 10417.68);
+});
+
 test('пункт отправки по умолчанию Сходня', () => {
   const { w } = page();
   assert.equal(w.document.getElementById('from').value, '67201');
@@ -377,9 +412,9 @@ test('груз выше 2,45 м: понятная ошибка вместо су
 // ошибки сети
 test('сеть: три попытки и понятное сообщение', async () => {
   let calls = 0;
-  const w = loadPage({ fast: true, fetchImpl: async () => { calls++; throw new Error('Failed to fetch'); } });
+  const w = loadPage({ fast: true, fetchImpl: async (u) => { if (!String(u).includes('pek-proxy')) calls++; throw new Error('Failed to fetch'); } });
   await w.calcOne();
-  assert.equal(calls, 3);
+  assert.equal(calls, 3);   // три попытки публичного расчёта после кабинета
   assert.match(text(w, 'resErr'), /ПЭК не ответил/);
   assert.equal(w.document.getElementById('calc').disabled, false);
 });
@@ -399,7 +434,7 @@ test('сеть: нет интернета', async () => {
 test('сеть: в сводной город без ответа помечается, остальные считаются', async () => {
   let n = 0;
   const real = fixtureFetch(ALL);
-  const w = loadPage({ fast: true, fetchImpl: async (u, o) => { n++; if (n <= 3) throw new Error('обрыв'); return real(u, o); } });
+  const w = loadPage({ fast: true, fetchImpl: async (u, o) => { if (String(u).includes('pek-proxy')) return real(u, o); n++; if (n <= 3) throw new Error('обрыв'); return real(u, o); } });
   setValue(w, 'model', 'one');
   await w.calcMatrix();
   const rows = [...w.document.querySelectorAll('#matrixTable tbody tr')].map(tr => tr.lastElementChild.textContent);

@@ -1,0 +1,7 @@
+name = "pek-proxy"
+main = "pek-proxy.js"
+compatibility_date = "2026-11-01"
+
+# секреты задаются командами и в этот файл не пишутся
+#   npx wrangler secret put PEK_LOGIN
+#   npx wrangler secret put PEK_KEY
