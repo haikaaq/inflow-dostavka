@@ -37,7 +37,7 @@ test('страница загружается и список моделей з�
 test('по умолчанию до терминала со своим довозом 3000 и коэффициентом 1,2', () => {
   const { w } = page();
   assert.equal(w.document.getElementById('take').checked, false);
-  assert.equal(w.document.getElementById('own').value, '3000');
+  assert.equal(w.document.getElementById('own').value, '3 000');
   assert.equal(w.document.getElementById('coef').value, '1.2');
 });
 
@@ -289,7 +289,7 @@ test('блок что ввести на pecom.ru: места в метрах и 
   assert.deepEqual(rows, [['1', '2,4 × 1,2 × 0,35', '205'], ['2', '2,3 × 1 × 0,28', '131'], ['3', '2,1 × 1 × 0,15', '64'], ['4', '1 × 0,4 × 0,25', '20']]);
   assert.match(b.textContent, /Сдать груз в отделении/);
   assert.match(b.textContent, /Объявленная стоимость: 100 ₽/);
-  assert.match(resultRows(w)['Страхование груза'], /сайт добавит сам/);
+  assert.match(resultRows(w)['Страхование груза'], /не посчитано/);
   setValue(w, 'take', true);
   setValue(w, 'qty', 2);
   setValue(w, 'model', 'one');
@@ -329,7 +329,7 @@ test('забор машиной ПЭК: свой довоз не прибавл�
 test('страховка 500 000 ₽ попадает в сумму (710 ₽)', async () => {
   const { w } = page();
   setValue(w, 'model', 'one');
-  setValue(w, 'strah', 500000);
+  setValue(w, 'price', 500000);
   await w.calcOne();
   const r = resultRows(w);
   assert.equal(money(r['Страхование груза']), 710);
@@ -450,4 +450,174 @@ test('проверка груза до запроса: пустой короб',
   await w.calcOne();
   assert.equal(calls, 0);
   assert.match(text(w, 'resErr'), /короба №1 не заполнены/);
+});
+
+// правки Марии 26.11 страховка обязательна стоимость вводится тысячи с пробелами несколько моделей жёсткая упаковка
+const cabFixture = () => readFixture('cabinet_one_spb_2026-11-26.json');
+
+test('денежные поля: пробелы между тысячами и число без пробелов в расчёте', () => {
+  const { w } = page();
+  for (const id of ['price', 'pack', 'own', 'extra']) {
+    const el = w.document.getElementById(id);
+    assert.equal(el.classList.contains('money'), true, id);
+    setValue(w, id, '1234567');
+    assert.equal(el.value, '1 234 567', id);
+    setValue(w, id, '325 000 ₽');
+    assert.equal(el.value, '325 000', id);
+    setValue(w, id, '007');
+    assert.equal(el.value, '7', id);
+  }
+  setValue(w, 'own', '3 500');
+  setValue(w, 'coef', 1);
+  assert.equal(w.totals({ auto: ['', '', 10000] }).own, 3500);
+});
+
+test('без стоимости кабины не считаем: подсказка и красная рамка', async () => {
+  let calls = 0;
+  const w = loadPage({ price: null, fetchImpl: async () => { calls++; throw new Error('не должен звать'); } });
+  await w.calcOne();
+  assert.equal(calls, 0);
+  assert.match(text(w, 'resErr'), /Впишите стоимость кабины/);
+  assert.equal(w.document.getElementById('price').classList.contains('need'), true);
+  setValue(w, 'price', 300000);
+  assert.equal(w.document.getElementById('price').classList.contains('need'), false);
+  // сводная тоже не считается без стоимости
+  const w2 = loadPage({ price: null, fetchImpl: async () => { calls++; throw new Error('не должен звать'); } });
+  await w2.calcMatrix();
+  assert.equal(calls, 0);
+  assert.match(text(w2, 'resErr'), /Впишите стоимость кабины/);
+});
+
+test('страховка всегда: объявленная стоимость = (кабина + упаковка) × кабины', async () => {
+  const cab = cabFixture(), sent = [], pub = [];
+  const w = loadPage({ fetchImpl: fixtureFetch(ALL, pub, cab.response, sent) });
+  setValue(w, 'model', 'one');
+  setValue(w, 'price', '325 000');
+  setValue(w, 'pack', '28 000');
+  setValue(w, 'qty', 2);
+  await w.calcOne();
+  const req = JSON.parse(sent[0]);
+  assert.equal(req.isInsurance, true);
+  assert.equal(req.isInsurancePrice, 706000);
+  assert.equal(req.cargos.length, 8);
+  assert.match(w.document.getElementById('pecCheckBody').textContent, /Объявленная стоимость: 706\s000 ₽/);
+  assert.match(resultRows(w)['Объявленная стоимость'], /706\s000/);
+  // запасной публичный расчёт тоже со страховкой
+  const log = [];
+  const w2 = loadPage({ fetchImpl: fixtureFetch(ALL, log) });
+  setValue(w2, 'model', 'one');
+  setValue(w2, 'price', 500000);
+  await w2.calcOne();
+  assert.match(log[0], /&strah=500000$/);
+});
+
+test('жёсткая упаковка за каждую кабину идёт в наши расходы и под коэффициент', async () => {
+  const cab = cabFixture();
+  const w = loadPage({ fetchImpl: fixtureFetch(ALL, [], cab.response, []) });
+  setValue(w, 'model', 'one');
+  setValue(w, 'pack', 28000);
+  setValue(w, 'qty', 2);
+  const t = w.totals({ auto: ['', '', 10000] });
+  assert.equal(t.pack, 56000);
+  assert.equal(t.clientTerminal, clientRound((10000 + 6000 + 56000) * 1.2));
+  await w.calcOne();
+  assert.match(resultRows(w)['Жёсткая упаковка'], /56\s000 ₽ \(2 × 28\s000 ₽\)/);
+  // упаковка не указана видно в результате
+  const w2 = loadPage({ fetchImpl: fixtureFetch(ALL, [], cab.response, []) });
+  await w2.calcOne();
+  assert.match(resultRows(w2)['Жёсткая упаковка'], /не указана/);
+});
+
+test('несколько разных моделей: все короба одной отправкой', async () => {
+  const cab = cabFixture(), sent = [];
+  const w = loadPage({ fetchImpl: fixtureFetch(ALL, [], cab.response, sent) });
+  const $ = id => w.document.getElementById(id);
+  assert.equal($('cargoTotal').hidden, true);
+  assert.equal(w.document.querySelector('.lineHead').hidden, true);
+  setValue(w, 'price', 400000);
+  setValue(w, 'pack', 30000);
+  const el = w.addLine();
+  assert.equal(w.document.querySelectorAll('#lines .line').length, 2);
+  assert.equal(w.document.querySelector('.lineHead').hidden, false);
+  // у второй позиции свои поля и свои id
+  const sel = el.querySelector('.model');
+  assert.notEqual(sel.id, 'model');
+  assert.equal(w.document.querySelector(`label[for="${sel.id}"]`).textContent, 'Модель');
+  sel.value = 'six'; sel.dispatchEvent(new w.Event('change', { bubbles: true }));
+  const price2 = el.querySelector('.price');
+  assert.equal(price2.value, '');
+  // без стоимости второй позиции расчёт не идёт
+  await w.calcOne();
+  assert.match(text(w, 'resErr'), /Позиция 2: Впишите стоимость кабины/);
+  assert.equal(sent.length, 0);
+  price2.value = '600000'; price2.dispatchEvent(new w.Event('input', { bubbles: true }));
+  assert.equal(price2.value, '600 000');
+  el.querySelector('.pack').value = '32000'; el.querySelector('.pack').dispatchEvent(new w.Event('input', { bubbles: true }));
+  el.querySelector('.plus').click();
+  assert.equal(el.querySelector('.q').value, '2');
+  assert.match($('cargoTotal').textContent, /3 кабины, 24 места/);   // двухместная 6 мест и две шестиместные по 9
+  assert.equal(w.allPlaces().length, 24);
+  assert.equal(w.declared(), 430000 + 2 * 632000);
+  assert.equal(w.packTotal(), 30000 + 64000);
+  await w.calcOne();
+  const req = JSON.parse(sent[0]);
+  assert.equal(req.cargos.length, 24);
+  assert.equal(req.isInsurancePrice, 1694000);
+  const r = resultRows(w);
+  assert.match(r['Груз'], /3 кабины \(Двухместная × 1 \+ Шестиместная × 2\), 24 места/);
+  assert.match(r['Свой довоз рохлей'], /9\s000/);
+  // на pecom.ru вводить места с числом одинаковых
+  const rows = [...w.document.querySelectorAll('#pecCheckBody table.places tbody tr')].map(tr => tr.lastElementChild.textContent);
+  assert.equal(rows.length, 15);
+  assert.deepEqual([rows[0], rows[6]], ['1', '2']);
+  // короба второй позиции правятся отдельно от первой
+  el.querySelector('.addBox').click();
+  assert.equal(w.allPlaces().length, 26);
+  assert.equal(w.placesForOneCabin().length, 6);
+  // убрать позицию
+  el.querySelector('.del').click();
+  assert.equal(w.document.querySelectorAll('#lines .line').length, 1);
+  assert.equal($('cargoTotal').hidden, true);
+  assert.equal(w.allPlaces().length, 6);
+});
+
+test('сводная по городам: название из всех позиций', async () => {
+  const { w } = page({ fast: true });
+  setValue(w, 'model', 'one');
+  w.addLine();
+  const p = w.document.querySelectorAll('#lines .price')[1];
+  p.value = '300000'; p.dispatchEvent(new w.Event('input', { bubbles: true }));
+  await w.calcMatrix();
+  assert.equal(text(w, 'matrixTitle'), 'Одноместная × 1 + Одноместная × 1 — по городам');
+});
+
+test('зона доставки ПЭК в результате: пригород помечен', async () => {
+  const cab = cabFixture();
+  const w = loadPage({ fetchImpl: async (u) => {
+    if (String(u).includes('findzonebyaddress')) return { ok: true, status: 200, json: async () => ({ zoneName: 'Казань пригород' }) };
+    return { ok: true, status: 200, json: async () => JSON.parse(JSON.stringify(cab.response)) };
+  } });
+  await w.calcOne();
+  assert.match(resultRows(w)['Зона доставки ПЭК'], /Казань пригород.*дороже/);
+  // зона не ответила расчёт всё равно есть
+  const w2 = loadPage({ fetchImpl: async (u) => {
+    if (String(u).includes('findzonebyaddress')) throw new Error('обрыв');
+    return { ok: true, status: 200, json: async () => JSON.parse(JSON.stringify(cab.response)) };
+  } });
+  await w2.calcOne();
+  assert.equal(resultRows(w2)['Зона доставки ПЭК'], undefined);
+  assert.equal(money(resultRows(w2)['Автоперевозка']), 11459.45);
+});
+
+test('Москва и область: без автоперевозки понятное сообщение, а не 0 ₽', async () => {
+  // так кабинет ответил 26.11 на адрес Балашиха только доставка 4025
+  const cab = cabFixture().response;
+  const local = JSON.parse(JSON.stringify(cab));
+  local.branchReceiver = 'Москва Восток';
+  local.transfers.find(x => x.type === 3).services = [{ info: 'Доставка груза', cost: 4025 }];
+  const w = loadPage({ fetchImpl: async () => ({ ok: true, status: 200, json: async () => JSON.parse(JSON.stringify(local)) }) });
+  setValue(w, 'to', 'Московская обл., г. Балашиха, ул. Советская, 1');
+  await w.calcOne();
+  assert.match(text(w, 'resErr'), /Москве или области/);
+  assert.equal(w.document.getElementById('resBody').hidden, true);
 });

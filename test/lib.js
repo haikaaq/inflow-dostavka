@@ -11,7 +11,8 @@ const HTML = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 // fetchImpl получает url и параметры как у window.fetch
 // fast true делает паузы между повторами нулевыми чтобы тест ошибок сети шёл быстро
 // storage заранее кладёт значения в хранилище браузера а noStorage делает его недоступным как в приватном окне
-function loadPage({ fetchImpl, fast = false, online = true, storage = null, noStorage = false } = {}) {
+// price это стоимость кабины в первой позиции страховка обязательна поэтому без неё расчёт не идёт null оставляет поле пустым
+function loadPage({ fetchImpl, fast = false, online = true, storage = null, noStorage = false, price = 100 } = {}) {
   const dom = new JSDOM(HTML, {
     runScripts: 'dangerously',
     pretendToBeVisual: true,
@@ -25,7 +26,9 @@ function loadPage({ fetchImpl, fast = false, online = true, storage = null, noSt
       if (fast) { const st = w.setTimeout.bind(w); w.setTimeout = (f) => st(f, 0); }
     },
   });
-  return dom.window;
+  const w = dom.window;
+  if (price != null) setValue(w, 'price', price);
+  return w;
 }
 
 // фикстура это объект где ключ тело запроса а значение ответ ПЭК
@@ -35,13 +38,17 @@ function readFixture(name) {
 // запросы к посреднику кабинета ПЭК идут отдельно если ответа кабинета нет считаем что он не ответил
 function fixtureFetch(responses, log = [], cabinet = null, cabLog = []) {
   return async (url, opt = {}) => {
-    const body = opt.body || '';
+    let body = opt.body || '';
     if (String(url).includes('pek-proxy')) {
+      // зона доставки в фикстурах не записана поэтому отвечаем пустой зоной
+      if (String(url).includes('findzonebyaddress')) return { ok: true, status: 200, json: async () => ({}) };
       cabLog.push(body);
       if (!cabinet) throw new Error('кабинет в тестах отключён');
       return { ok: true, status: 200, json: async () => JSON.parse(JSON.stringify(cabinet)) };
     }
     log.push(body);
+    // фикстуры публичного расчёта записаны без страховки поэтому если точного запроса нет ищем такой же без strah
+    if (!(body in responses.requests)) body = body.replace(/&strah=\d+$/, '');
     if (!(body in responses.requests)) throw new Error('нет фикстуры для запроса ' + body.slice(0, 200));
     const data = responses.requests[body].response;
     return { ok: true, status: 200, json: async () => JSON.parse(JSON.stringify(data)) };
