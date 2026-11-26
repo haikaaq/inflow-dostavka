@@ -613,7 +613,7 @@ test('pdf для клиента: суммы клиенту без цен ПЭК 
   setValue(w, 'pack', 28000);
   await w.calcOne();
   const c = w.eval('lastCheck');
-  assert.equal(c.clientDoor, 55300);   // пример из раздела как считает калькулятор
+  assert.equal(c.clientDoor, 55300);   // кабина 325000 упаковка 28000 до Петербурга
   const dd = w.buildCheck(c, null);
   const txt = allText(dd.content).replace(/ /g, ' ');
   assert.match(txt, /ДОСТАВКА В САНКТ-ПЕТЕРБУРГ/);

@@ -13,21 +13,31 @@
 <meta name="apple-mobile-web-app-title" content="Доставка ПЭК">
 <style>
   :root {
-    /* цвета как в КП Inflow */
-    --blue:#23405c; --blue-deep:#17304a; --mist:#e6edf4; --pale:#d6e4f1; --pill:#8db8de; --accent:#f26a3c;
+    /* синий как в первом дизайне калькулятора остальное как в КП Inflow */
+    --blue:#315d7c; --blue-deep:#244a64; --mist:#e6edf4; --pale:#d6e4f1; --pill:#8db8de; --accent:#f26a3c;
     --ink:#23323f; --black:#1f3a52; --muted:#5b6b7a; --line:#dce5ee;
     --warn:#94570f; --bad:#b3261e;
   }
   * { box-sizing: border-box; }
-  body { margin:0; font:16px/1.45 Calibri, "Segoe UI", "Open Sans", -apple-system, Roboto, Arial, sans-serif; color:var(--ink); background:var(--mist) linear-gradient(160deg, #eef3f8 0%, #e6edf4 45%, #dde7f0 100%) fixed; }
-  .top { background:var(--blue-deep); box-shadow:0 2px 10px rgba(23,48,74,.25); }
+  body { margin:0; font:16px/1.45 Calibri, "Segoe UI", "Open Sans", -apple-system, Roboto, Arial, sans-serif; color:var(--ink); background:#e9f0f6; }
+  /* фон в несколько слоёв мягкие пятна цвета и светлые дуги как на фоне КП */
+  body::before { content:''; position:fixed; top:0; left:0; right:0; bottom:0; z-index:-1; pointer-events:none;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 1000' preserveAspectRatio='xMidYMid slice'%3E%3Cg fill='none' stroke='white' stroke-linecap='round'%3E%3Cpath d='M-100 760 C 300 520 700 980 1700 380' stroke-width='90' stroke-opacity='.28'/%3E%3Cpath d='M-100 820 C 380 600 760 1040 1700 470' stroke-width='18' stroke-opacity='.55'/%3E%3Cpath d='M200 -80 C 520 260 1020 120 1700 520' stroke-width='60' stroke-opacity='.22'/%3E%3Cpath d='M260 -80 C 600 300 1060 170 1700 600' stroke-width='6' stroke-opacity='.6'/%3E%3Cpath d='M1650 -60 C 1250 300 1300 700 900 1080' stroke-width='140' stroke-opacity='.16'/%3E%3C/g%3E%3C/svg%3E") center / cover no-repeat,
+      radial-gradient(55% 45% at 88% 8%, rgba(141,184,222,.45), rgba(141,184,222,0) 70%),
+      radial-gradient(45% 40% at 4% 35%, rgba(255,255,255,.95), rgba(255,255,255,0) 70%),
+      radial-gradient(60% 50% at 75% 100%, rgba(49,93,124,.20), rgba(49,93,124,0) 70%),
+      radial-gradient(40% 35% at 20% 95%, rgba(141,184,222,.30), rgba(141,184,222,0) 70%),
+      linear-gradient(165deg, #f5f9fc 0%, #e9f0f6 50%, #dfe8f1 100%); }
+  .top { background:var(--blue-deep) linear-gradient(120deg, #244a64 0%, #2b5674 60%, #315d7c 100%); box-shadow:0 4px 16px rgba(36,74,100,.25); }
   .top div { max-width:720px; margin:0 auto; padding:16px 16px 14px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
   .top img { display:block; width:130px; height:auto; }
   .top h1 { margin:0; padding:5px 16px; border-radius:100px; background:var(--pill); color:var(--black); font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; box-shadow:0 2px 6px rgba(0,0,0,.25); }
-  main { max-width:720px; margin:0 auto; padding:16px 12px 56px; }
+  main { max-width:720px; margin:0 auto; padding:24px 12px 64px; }
   h2 { display:flex; align-items:center; gap:10px; font:700 17px/1.3 Verdana, "Segoe UI", Arial, sans-serif; color:var(--black); margin:0 0 6px; }
   h2 .step { flex:none; width:26px; height:26px; border-radius:50%; background:var(--blue); color:#fff; font-size:14px; line-height:26px; text-align:center; }
-  .card { background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:12px; box-shadow:0 3px 10px rgba(31,58,82,.08); }
+  .card { background:rgba(255,255,255,.84); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.9); border-radius:18px; padding:20px; margin-bottom:16px;
+    box-shadow:0 1px 2px rgba(36,74,100,.06), 0 10px 30px rgba(36,74,100,.09); }
   label { display:block; font-size:14px; color:var(--muted); margin:14px 0 5px; }
   input, select, button, textarea { font:inherit; font-size:16px; }
   input[type=number], input[type=text], select { width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:10px; background:#fff; color:var(--ink); }
@@ -124,11 +134,6 @@
   .formula b { color:var(--accent); }
   .tags { display:flex; flex-wrap:wrap; gap:6px; list-style:none; padding:0 !important; }
   .tags li { margin:0; padding:4px 12px; border-radius:100px; background:var(--blue); color:#fff !important; font-size:13px !important; }
-  .how table { font-size:14px; margin-top:6px; }
-  .how td { padding:6px 4px; }
-  .how tr.sum td { font-weight:700; color:var(--black); border-top:2px solid var(--pill); }
-  .how tr.res td { font-weight:700; color:#fff; background:var(--blue); }
-  .how tr.res td:first-child { border-radius:8px 0 0 8px; } .how tr.res td:last-child { border-radius:0 8px 8px 0; }
   @media (max-width:420px) { .two { grid-template-columns:1fr; } .top img { width:110px; } .big { font-size:26px; } }
 </style>
 </head>
@@ -249,19 +254,6 @@
     <p>Москва и область: ПЭК не везёт, доставку и монтаж считаем сами (One — около 40 000 ₽, две кабины — 65–80 тыс. ₽).</p>
     <h3>Не входит</h3>
     <ul class="tags"><li>Подъём на этаж</li><li>Ожидание машины</li><li>Хранение на терминале</li><li>Упаковка ПЭК</li><li>Скидки по договору с ПЭК</li></ul>
-    <h3>Пример</h3>
-    <p class="note">Одноместная, Сходня → Санкт-Петербург, до адреса, свой довоз, кабина 325 000 ₽, упаковка 28 000 ₽, коэффициент 1,2. Цены ПЭК на 26.11.2026.</p>
-    <table>
-      <tr><td>Перевозка</td><td>11 459,45 ₽</td></tr>
-      <tr><td>Доставка по адресу</td><td>3 047,50 ₽</td></tr>
-      <tr><td>Страхование (от 353 000 ₽)</td><td>575,10 ₽</td></tr>
-      <tr class="sum"><td>Сумма ПЭК</td><td>15 082,05 ₽</td></tr>
-      <tr><td>Рохля</td><td>3 000 ₽</td></tr>
-      <tr><td>Жёсткая упаковка</td><td>28 000 ₽</td></tr>
-      <tr class="sum"><td>Расходы всего</td><td>46 082,05 ₽</td></tr>
-      <tr><td>× 1,2</td><td>55 298,46 ₽</td></tr>
-      <tr class="res"><td>Клиенту, вверх до 100 ₽</td><td>55 300 ₽</td></tr>
-    </table>
   </details>
 </main>
 
