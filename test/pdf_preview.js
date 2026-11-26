@@ -13,7 +13,7 @@ async function sample(name, setup) {
   const w = loadPage({ fetchImpl: fixtureFetch({ requests: {} }, [], cab, []) });
   setup(w);
   await w.calcOne();
-  const dd = w.buildCheck(w.eval('lastCheck'), w.document.querySelector('.top img').src);
+  const dd = w.buildCheck(w.eval('lastCheck'));
   await new Promise(ok => pdfMake.createPdf(dd).getBuffer(b => { fs.writeFileSync(path.join(out, name), Buffer.from(b)); ok(); }));
   console.log(name, w.checkFileName(w.eval('lastCheck')));
 }

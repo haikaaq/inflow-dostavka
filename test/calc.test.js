@@ -614,13 +614,23 @@ test('pdf для клиента: суммы клиенту без цен ПЭК 
   await w.calcOne();
   const c = w.eval('lastCheck');
   assert.equal(c.clientDoor, 55300);   // кабина 325000 упаковка 28000 до Петербурга
-  const dd = w.buildCheck(c, null);
+  const dd = w.buildCheck(c);
   const txt = allText(dd.content).replace(/ /g, ' ');
   assert.match(txt, /ДОСТАВКА В САНКТ-ПЕТЕРБУРГ/);
   assert.match(txt, /55 300 ₽/);
   assert.match(txt, /Страхование груза на 353 000 ₽/);
-  assert.match(txt, /Жёсткая упаковка кабин/);
-  assert.match(txt, /Кабина одноместная — 1 шт\./);
+  assert.match(txt, /Жёсткая упаковка/);
+  assert.match(txt, /33 600 ₽/);
+  assert.match(txt, /Кабина одноместная/);
+  assert.match(txt, /1 шт\./);
+  // из чего складывается цена в ценах клиента части в сумме дают итог
+  const cp = w.clientParts(Object.assign({}, c, { city: 'Санкт-Петербург' }));
+  assert.deepEqual(JSON.parse(JSON.stringify(cp.rows)), [['Доставка до терминала ПЭК', 3600], ['Перевозка ПЭК Москва – Санкт-Петербург', 13810], ['Страхование груза на 353 000 ₽', 690], ['Жёсткая упаковка', 33600]]);
+  assert.equal(cp.rows.reduce((x, r) => x + r[1], 0), c.clientTerminal);
+  assert.equal(cp.delivery, 3600);
+  assert.match(txt, /Из чего складывается цена/);
+  assert.match(txt, /Итого до терминала ПЭК/);
+  assert.match(txt, /51 700 ₽/);
   assert.match(txt, /Самойлов Артём/);
   // внутренние цифры клиенту не показываем
   for (const bad of [/11 459/, /15 082/, /1,2\b|×/, /Автоперевозка/, /рохл/i, /коэффициент/i]) assert.doesNotMatch(txt, bad, String(bad));
